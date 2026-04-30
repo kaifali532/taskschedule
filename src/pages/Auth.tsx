@@ -55,52 +55,59 @@ export default function Auth() {
          <div className="absolute top-1/4 right-1/4 w-[400px] h-[400px] rounded-full bg-purple-500/10 blur-[100px] opacity-40"></div>
       </div>
 
-      <div className="flex-1 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 relative z-10 w-full">
-        <div className="sm:mx-auto sm:w-full sm:max-w-[480px] flex flex-col items-center">
+      <div className="flex-1 flex flex-col relative z-10 w-full">
         
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className="flex flex-col items-center justify-center text-center mb-10 w-full"
-        >
-          <motion.h1 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-            className="font-bold text-[56px] sm:text-[72px] tracking-tighter leading-none text-white mb-2"
-          >
-            Ethara.Ai
-          </motion.h1>
-          <motion.h2 
-            initial={{ opacity: 0, y: 10 }}
+        {/* === HERO SECTION === */}
+        <div className="w-full min-h-[85vh] flex flex-col items-center justify-center px-6 py-20 max-w-6xl mx-auto">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="text-[20px] sm:text-[28px] font-medium text-zinc-300 tracking-tight leading-tight mb-8"
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="flex flex-col items-center justify-center text-center w-full"
           >
-            TeamTaskSchedule
-          </motion.h2>
-          
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 0.4, ease: "easeOut" }}
-          >
-            <h3 className="text-[18px] sm:text-[22px] font-medium text-zinc-100 mb-3 tracking-tight">
-              Organize Your Work. Simplify Your Life.
-            </h3>
-            <p className="text-[14px] sm:text-[16px] text-zinc-400 font-light max-w-[340px] mx-auto leading-relaxed">
-              Manage projects, assign tasks, and track progress effortlessly.
-            </p>
+            <motion.h1 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+              className="font-bold text-[64px] sm:text-[96px] lg:text-[112px] tracking-tighter leading-none text-white mb-4 sm:mb-6"
+            >
+              Ethara.Ai
+            </motion.h1>
+            <motion.h2 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className="text-[24px] sm:text-[36px] lg:text-[40px] font-medium text-zinc-300 tracking-tight leading-tight mb-12"
+            >
+              TeamTaskSchedule
+            </motion.h2>
+            
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, delay: 0.4, ease: "easeOut" }}
+              className="mt-2"
+            >
+              <h3 className="text-[28px] sm:text-[40px] font-medium text-zinc-100 mb-4 sm:mb-6 tracking-tight max-w-3xl mx-auto leading-tight">
+                Organize Your Work. Simplify Your Life.
+              </h3>
+              <p className="text-[16px] sm:text-[20px] text-zinc-400 font-light max-w-2xl mx-auto leading-relaxed px-4">
+                Manage projects, assign tasks, and track progress effortlessly.
+              </p>
+            </motion.div>
           </motion.div>
-        </motion.div>
+        </div>
 
-        <motion.div 
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full mt-4"
-        >
+        {/* === AUTH FORM SECTION === */}
+        <div className="w-full flex-none flex flex-col justify-center py-20 px-4 sm:px-6 lg:px-8 bg-black/20 backdrop-blur-sm border-t border-white/5">
+          <div className="sm:mx-auto sm:w-full sm:max-w-[480px] flex flex-col items-center">
+            <motion.div 
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+              className="w-full"
+            >
           <div className="outer-card w-full">
             <span className="glow-layer"></span>
             <span className="glow-layer blur-strong"></span>
@@ -225,6 +232,7 @@ export default function Auth() {
         </motion.div>
         
         </div>
+      </div>
       </div>
 
       {/* Footer Enhancement */}
