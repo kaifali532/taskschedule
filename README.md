@@ -1,11 +1,22 @@
-<div align="center">
+# TaskSchedule
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+TaskSchedule is a Team Task Manager where users can create projects, assign tasks, and track progress with role-based access.
 
-  <h1>Built with AI Studio</h2>
+## Supabase Setup Instructions
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+1. Go to your Supabase project dashboard (Project ID: `dgqxoguogzakauhxlgci`)
+2. Go to the **SQL Editor** in the left sidebar.
+3. Open the `supabase-setup.sql` file from this codebase.
+4. Copy its contents, paste them into the SQL Editor, and hit **Run**.
+5. Your database tables, RLS policies, and triggers are now fully set up.
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+## Features Built
+- **Admin**: Can create projects and assign tasks to members.
+- **Member**: Can view projects and update statuses of assigned tasks.
+- **Role-Based Auth**: Stored properly via Supabase.
+- **Dashboard Metrics**: Task completion, pending tasks, overdue tasks.
 
-</div>
+## Tech Stack
+- React/Vite (TypeScript)
+- Tailwind CSS
+- Supabase SDK (Auth & PostgreSQL)

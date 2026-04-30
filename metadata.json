@@ -1,0 +1,6 @@
+{
+  "name": "TaskSchedule",
+  "description": "A Team Task Manager where users can create projects, assign tasks, and track progress with role-based access.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
