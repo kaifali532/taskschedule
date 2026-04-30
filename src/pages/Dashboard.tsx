@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase, Task } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { isPast, parseISO } from 'date-fns';
-import { ArrowRight, CircleIcon, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function Dashboard() {
@@ -53,27 +53,48 @@ export default function Dashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-10">
-        <div className="bg-white border border-gray-100 p-6 rounded-[22px] shadow-[0_4px_24px_rgba(0,0,0,0.025)] hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-all duration-300">
-          <p className="text-[#86868b] text-[12px] font-semibold uppercase tracking-wider mb-2">Total Tasks</p>
-          <h3 className="text-[40px] leading-none font-bold tracking-tight text-[#1d1d1f]">{totalTasks}</h3>
-        </div>
-        <div className="bg-white border border-gray-100 p-6 rounded-[22px] shadow-[0_4px_24px_rgba(0,0,0,0.025)] hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-all duration-300">
-          <p className="text-[#86868b] text-[12px] font-semibold uppercase tracking-wider mb-2">Completed</p>
-          <h3 className="text-[40px] leading-none font-bold tracking-tight text-[#1d1d1f]">{completedTasks}</h3>
-          <div className="mt-4 w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
-            <div 
-              className="bg-black h-full rounded-full transition-all duration-1000 ease-out" 
-              style={{ width: `${completionPercentage}%` }}
-            ></div>
+        <div className="outer-card">
+          <span className="glow-layer"></span>
+          <span className="glow-layer blur-strong"></span>
+          <div className="card-internal p-6">
+            <p className="text-[#86868b] text-[12px] font-semibold uppercase tracking-wider mb-2">Total Tasks</p>
+            <h3 className="text-[40px] leading-none font-bold tracking-tight text-[#1d1d1f]">{totalTasks}</h3>
           </div>
         </div>
-        <div className="bg-white border border-gray-100 p-6 rounded-[22px] shadow-[0_4px_24px_rgba(0,0,0,0.025)] hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-all duration-300">
-          <p className="text-[#86868b] text-[12px] font-semibold uppercase tracking-wider mb-2">Pending</p>
-          <h3 className="text-[40px] leading-none font-bold tracking-tight text-[#1d1d1f]">{pendingTasks}</h3>
+        
+        <div className="outer-card">
+          <span className="glow-layer"></span>
+          <span className="glow-layer blur-strong"></span>
+          <div className="card-internal p-6 flex flex-col justify-between">
+            <div>
+              <p className="text-[#86868b] text-[12px] font-semibold uppercase tracking-wider mb-2">Completed</p>
+              <h3 className="text-[40px] leading-none font-bold tracking-tight text-[#1d1d1f]">{completedTasks}</h3>
+            </div>
+            <div className="mt-4 w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
+              <div 
+                className="bg-black h-full rounded-full transition-all duration-1000 ease-out" 
+                style={{ width: `${completionPercentage}%` }}
+              ></div>
+            </div>
+          </div>
         </div>
-        <div className={`bg-white border p-6 rounded-[22px] shadow-[0_4px_24px_rgba(0,0,0,0.025)] hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-all duration-300 ${overdueTasks > 0 ? 'border-red-100 bg-red-50/10' : 'border-gray-100'}`}>
-          <p className={`text-[12px] font-semibold uppercase tracking-wider mb-2 ${overdueTasks > 0 ? 'text-red-500' : 'text-[#86868b]'}`}>Overdue</p>
-          <h3 className="text-[40px] leading-none font-bold tracking-tight text-[#1d1d1f]">{overdueTasks}</h3>
+
+        <div className="outer-card">
+          <span className="glow-layer"></span>
+          <span className="glow-layer blur-strong"></span>
+          <div className="card-internal p-6">
+            <p className="text-[#86868b] text-[12px] font-semibold uppercase tracking-wider mb-2">Pending</p>
+            <h3 className="text-[40px] leading-none font-bold tracking-tight text-[#1d1d1f]">{pendingTasks}</h3>
+          </div>
+        </div>
+
+        <div className="outer-card">
+          <span className="glow-layer"></span>
+          <span className="glow-layer blur-strong"></span>
+          <div className={`card-internal p-6 ${overdueTasks > 0 ? 'bg-red-50/10 border-red-100' : ''}`}>
+            <p className={`text-[12px] font-semibold uppercase tracking-wider mb-2 ${overdueTasks > 0 ? 'text-red-500' : 'text-[#86868b]'}`}>Overdue</p>
+            <h3 className="text-[40px] leading-none font-bold tracking-tight text-[#1d1d1f]">{overdueTasks}</h3>
+          </div>
         </div>
       </div>
 
@@ -84,7 +105,7 @@ export default function Dashboard() {
         </Link>
       </div>
       
-      <div className="bg-white border border-gray-100 rounded-[22px] shadow-[0_4px_24px_rgba(0,0,0,0.025)] overflow-hidden">
+      <div className="bg-white border border-gray-100 rounded-[24px] shadow-[0_4px_24px_rgba(0,0,0,0.025)] overflow-hidden">
         {tasks.length > 0 ? (
           <div className="divide-y divide-gray-100">
             {tasks.slice(0, 5).map(task => (

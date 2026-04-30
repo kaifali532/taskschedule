@@ -47,8 +47,8 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen bg-[#fbfbfd] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 font-sans animate-in">
-      <div className="sm:mx-auto sm:w-full sm:max-w-[420px] flex flex-col items-center">
-        <div className="w-12 h-12 bg-black rounded-[14px] flex items-center justify-center mb-6 shadow-md shadow-black/10">
+      <div className="sm:mx-auto sm:w-full sm:max-w-[420px] flex flex-col items-center relative z-10">
+        <div className="w-12 h-12 bg-black rounded-[14px] flex items-center justify-center mb-6 shadow-[0_4px_10px_rgba(0,0,0,0.1)]">
           <CheckSquare className="w-6 h-6 text-white" />
         </div>
         <h2 className="text-center text-[28px] font-semibold tracking-tight text-[#1d1d1f] mb-2">
@@ -60,44 +60,47 @@ export default function Auth() {
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-[420px]">
-        <div className="bg-white py-10 px-6 sm:rounded-[24px] sm:px-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100">
-          <form className="space-y-5" onSubmit={handleAuth}>
-            {error && (
-              <div className="bg-red-50/80 text-red-600 p-3.5 rounded-xl text-sm text-center border border-red-100">
-                {error}
-              </div>
-            )}
-            
-            {!isLogin && (
-              <div className="space-y-4 text-left">
-                <div>
-                  <input
-                    id="name"
-                    name="name"
-                    type="text"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Full Name"
-                    className="block w-full rounded-xl bg-gray-50/50 border border-gray-200 py-3.5 px-4 text-[#1d1d1f] focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white sm:text-[15px] transition-all placeholder:text-[#86868b]"
-                  />
+        <div className="outer-card">
+          <span className="glow-layer"></span>
+          <span className="glow-layer blur-strong"></span>
+          <div className="card-internal py-10 px-6 sm:px-10 h-full">
+            <form className="space-y-5 relative z-10" onSubmit={handleAuth}>
+              {error && (
+                <div className="bg-red-50 text-red-600 p-3.5 rounded-xl text-sm text-center border border-red-100">
+                  {error}
                 </div>
-                <div className="relative">
-                  <select
-                    id="role"
-                    name="role"
-                    value={role}
-                    onChange={(e) => setRole(e.target.value as 'Member' | 'Admin')}
-                    className="block w-full rounded-xl bg-gray-50/50 border border-gray-200 py-3.5 px-4 text-[#1d1d1f] focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white sm:text-[15px] transition-all appearance-none"
-                  >
-                    <option value="Member">Team Member</option>
-                    <option value="Admin">Administrator</option>
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+              )}
+              
+              {!isLogin && (
+                <div className="space-y-4 text-left">
+                  <div>
+                    <input
+                      id="name"
+                      name="name"
+                      type="text"
+                      required
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Full Name"
+                      className="block w-full rounded-xl bg-gray-50 border border-gray-200 py-3.5 px-4 text-[#1d1d1f] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-[15px] transition-all placeholder:text-gray-400"
+                    />
+                  </div>
+                  <div className="relative">
+                    <select
+                      id="role"
+                      name="role"
+                      value={role}
+                      onChange={(e) => setRole(e.target.value as 'Member' | 'Admin')}
+                      className="block w-full rounded-xl bg-gray-50 border border-gray-200 py-3.5 px-4 text-[#1d1d1f] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-[15px] transition-all appearance-none"
+                    >
+                      <option value="Member">Team Member</option>
+                      <option value="Admin">Administrator</option>
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                    </div>
                   </div>
                 </div>
-              </div>
             )}
             
             <div className="space-y-4">
@@ -111,7 +114,7 @@ export default function Auth() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Email address"
-                  className="block w-full rounded-xl bg-gray-50/50 border border-gray-200 py-3.5 px-4 text-[#1d1d1f] focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white sm:text-[15px] transition-all placeholder:text-[#86868b]"
+                  className="block w-full rounded-xl bg-gray-50 border border-gray-200 py-3.5 px-4 text-[#1d1d1f] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-[15px] transition-all placeholder:text-gray-400"
                 />
               </div>
               
@@ -125,7 +128,7 @@ export default function Auth() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Password"
-                  className="block w-full rounded-xl bg-gray-50/50 border border-gray-200 py-3.5 px-4 text-[#1d1d1f] focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white sm:text-[15px] transition-all placeholder:text-[#86868b]"
+                  className="block w-full rounded-xl bg-gray-50 border border-gray-200 py-3.5 px-4 text-[#1d1d1f] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-[15px] transition-all placeholder:text-gray-400"
                 />
               </div>
             </div>
@@ -142,18 +145,19 @@ export default function Auth() {
             </div>
           </form>
           
-          <div className="mt-8 text-center border-t border-gray-100 pt-6">
-            <p className="text-[14px] text-[#86868b]">
+          <div className="mt-8 text-center border-t border-gray-100 pt-6 relative z-10">
+            <p className="text-[14px] text-gray-500">
               {isLogin ? "Don't have an account? " : "Already have an account? "}
               <button
                 type="button"
                 onClick={() => { setIsLogin(!isLogin); setError(null); }}
-                className="font-medium text-[#1d1d1f] hover:underline"
+                className="font-medium text-[#1d1d1f] hover:text-blue-600 transition-colors"
               >
                 {isLogin ? 'Create one now' : 'Sign in instead'}
               </button>
             </p>
           </div>
+        </div>
         </div>
       </div>
     </div>

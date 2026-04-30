@@ -129,7 +129,7 @@ export default function Projects() {
                 required
                 value={newProjectName}
                 onChange={(e) => setNewProjectName(e.target.value)}
-                className="block w-full rounded-xl bg-gray-50/50 border border-gray-200 py-3.5 px-4 text-[#1d1d1f] focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white sm:text-[15px] transition-all"
+                className="block w-full rounded-xl bg-gray-50 border border-gray-200 py-3.5 px-4 text-[#1d1d1f] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-[15px] transition-all placeholder:text-gray-400"
                 placeholder="E.g., Q1 Marketing Campaign"
                 autoFocus
               />
@@ -153,28 +153,32 @@ export default function Projects() {
       ) : projects.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {projects.map((project) => (
-            <div key={project.id} className="group relative flex flex-col p-6 overflow-hidden rounded-[24px] bg-white border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:-translate-y-1 hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)] transition-all duration-300">
-               <div className="flex items-start justify-between mb-8 flex-1">
-                  <div className="w-12 h-12 rounded-[14px] bg-blue-50 text-blue-600 flex items-center justify-center mb-4">
-                     <Folder className="w-6 h-6" />
-                  </div>
-                  {isAdmin && (
-                    <button
-                      onClick={(e) => handleDeleteProject(project.id, e)}
-                      className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-full transition-all"
-                      title="Delete Project"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  )}
-               </div>
-               <div>
-                  <h3 className="text-[20px] font-semibold text-[#1d1d1f] mb-1.5 leading-tight truncate" title={project.name}>{project.name}</h3>
-                  <p className="text-[14px] text-[#86868b]">Admin: {project.admin.name}</p>
-               </div>
-               <div className="mt-6 pt-4 border-t border-gray-50 flex items-center justify-between">
-                  <span className="text-[12px] font-medium text-gray-400">Created {format(parseISO(project.created_at), 'MMM d, yyyy')}</span>
-               </div>
+            <div key={project.id} className="outer-card group">
+              <span className="glow-layer"></span>
+              <span className="glow-layer blur-strong"></span>
+              <div className="card-internal flex flex-col p-6 overflow-hidden">
+                 <div className="flex items-start justify-between mb-8 flex-1">
+                    <div className="w-12 h-12 rounded-[14px] bg-blue-50 text-blue-600 flex items-center justify-center mb-4">
+                       <Folder className="w-6 h-6" />
+                    </div>
+                    {isAdmin && (
+                      <button
+                        onClick={(e) => handleDeleteProject(project.id, e)}
+                        className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-full transition-all"
+                        title="Delete Project"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
+                 </div>
+                 <div>
+                    <h3 className="text-[20px] font-semibold text-[#1d1d1f] mb-1.5 leading-tight truncate" title={project.name}>{project.name}</h3>
+                    <p className="text-[14px] text-[#86868b]">Admin: {project.admin.name}</p>
+                 </div>
+                 <div className="mt-6 pt-4 border-t border-gray-50 flex items-center justify-between">
+                    <span className="text-[12px] font-medium text-gray-400">Created {format(parseISO(project.created_at), 'MMM d, yyyy')}</span>
+                 </div>
+              </div>
             </div>
           ))}
         </div>
