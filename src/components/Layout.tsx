@@ -104,9 +104,9 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   return (
     <div className="min-h-screen bg-[#09090b] text-white font-sans selection:bg-purple-500/30 flex flex-col relative overflow-hidden">
       {/* Background Watermark */}
-      <div className="fixed inset-0 z-0 pointer-events-none flex flex-col items-center justify-start pt-[20vh] select-none opacity-[0.02] mix-blend-screen">
-        <h1 className="text-[12vw] sm:text-[140px] font-medium tracking-tight leading-none text-white">Ethara.Ai</h1>
-        <p className="text-[4vw] sm:text-[40px] font-light tracking-widest mt-2 sm:mt-4 text-zinc-400 uppercase">TeamTaskSchedule</p>
+      <div className="fixed inset-0 z-0 pointer-events-none flex flex-col items-center justify-start pt-[20vh] select-none mix-blend-screen">
+        <h1 className="text-[12vw] sm:text-[140px] font-medium tracking-tight leading-none text-white animate-neon-pulse">Ethara.Ai</h1>
+        <p className="text-[4vw] sm:text-[40px] font-light tracking-widest mt-2 sm:mt-4 text-zinc-400 uppercase opacity-[0.03]">TeamTaskSchedule</p>
       </div>
 
       <div className="relative z-10 flex flex-col min-h-screen w-full">
