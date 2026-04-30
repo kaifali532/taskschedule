@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase, Task, Project, UserProfile, TaskStatus } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { Plus, Trash2, Edit, X } from 'lucide-react';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, isPast } from 'date-fns';
 
 export default function Tasks() {
   const { profile } = useAuth();
@@ -11,42 +11,46 @@ export default function Tasks() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Form states
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [projectId, setProjectId] = useState('');
   const [assignedTo, setAssignedTo] = useState('');
-  const [status, setStatus] = useState<TaskStatus>('To Do');
   const [deadline, setDeadline] = useState('');
+  const [status, setStatus] = useState<TaskStatus>('To Do');
 
   useEffect(() => {
-    if (profile) fetchData();
+    if (profile) {
+      fetchTasks();
+      fetchProjects();
+      fetchUsers();
+    }
   }, [profile]);
 
-  const fetchData = async () => {
+  const fetchTasks = async () => {
     try {
       setLoading(true);
-      
-      const { data: pData } = await supabase.from('projects').select('*');
-      const { data: uData } = await supabase.from('users').select('*');
-      
-      setProjects(pData || []);
-      setUsers(uData || []);
+      const { data: tasksData, error: taskError } = await supabase.from('tasks').select('*').order('created_at', { ascending: false });
+      if (taskError) throw taskError;
 
-      let query = supabase.from('tasks').select('*').order('created_at', { ascending: false });
-      if (profile?.role === 'Member') query = query.eq('assigned_to', profile.id);
+      const { data: projectsData, error: projError } = await supabase.from('projects').select('*');
+      if (projError) throw projError;
 
-      const { data: tData, error } = await query;
-      if (error) throw error;
+      const { data: usersData, error: usrError } = await supabase.from('users').select('*');
+      if (usrError) throw usrError;
 
-      const enriched = (tData || []).map(t => ({
+      let enriched = (tasksData || []).map(t => ({
         ...t,
-        project: pData?.find(p => p.id === t.project_id) || { name: 'Unknown Project' },
-        assignee: uData?.find(u => u.id === t.assigned_to) || null,
+        project: projectsData?.find(p => p.id === t.project_id) || { name: 'Unknown' },
+        assignee: usersData?.find(u => u.id === t.assigned_to) || null
       }));
+
+      if (profile?.role === 'Member') {
+         enriched = enriched.filter(t => t.assigned_to === profile.id);
+      }
 
       setTasks(enriched);
     } catch (error) {
@@ -56,6 +60,16 @@ export default function Tasks() {
     }
   };
 
+  const fetchProjects = async () => {
+    const { data } = await supabase.from('projects').select('*');
+    if (data) setProjects(data);
+  };
+
+  const fetchUsers = async () => {
+    const { data } = await supabase.from('users').select('*');
+    if (data) setUsers(data);
+  };
+
   const handleOpenModal = (task?: Task) => {
     if (task) {
       setEditingTask(task);
@@ -63,16 +77,16 @@ export default function Tasks() {
       setDescription(task.description || '');
       setProjectId(task.project_id);
       setAssignedTo(task.assigned_to || '');
+      setDeadline(task.deadline ? task.deadline.slice(0, 16) : '');
       setStatus(task.status);
-      setDeadline(task.deadline ? new Date(task.deadline).toISOString().slice(0, 16) : '');
     } else {
       setEditingTask(null);
       setTitle('');
       setDescription('');
-      setProjectId(projects[0]?.id || '');
+      setProjectId(profile?.role === 'Admin' && projects.length > 0 ? projects[0].id : '');
       setAssignedTo('');
-      setStatus('To Do');
       setDeadline('');
+      setStatus('To Do');
     }
     setIsModalOpen(true);
   };
@@ -80,120 +94,123 @@ export default function Tasks() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const payload = {
-        title,
-        description,
-        project_id: projectId,
-        assigned_to: assignedTo || null,
+      const payload: any = {
         status,
-        deadline: deadline ? new Date(deadline).toISOString() : null,
       };
+
+      if (profile?.role === 'Admin') {
+         payload.title = title;
+         payload.description = description;
+         payload.project_id = projectId;
+         payload.assigned_to = assignedTo || null;
+         payload.deadline = deadline ? new Date(deadline).toISOString() : null;
+      }
 
       if (editingTask) {
         if (profile?.role === 'Admin') {
           await supabase.from('tasks').update(payload).eq('id', editingTask.id);
         } else {
-          await supabase.from('tasks').update({ status }).eq('id', editingTask.id);
+          await supabase.from('tasks').update({ status }).eq('id', editingTask.id).eq('assigned_to', profile.id);
         }
       } else {
+        if (profile?.role === 'Member') return;
         await supabase.from('tasks').insert([payload]);
       }
       setIsModalOpen(false);
-      fetchData();
+      fetchTasks();
     } catch (error) {
       console.error('Error saving task:', error);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this task?')) return;
+    if (!confirm('Are you sure you want to delete this task?')) return;
     try {
       await supabase.from('tasks').delete().eq('id', id);
-      fetchData();
+      fetchTasks();
     } catch (error) {
       console.error('Error deleting task:', error);
     }
   };
 
   const isAdmin = profile?.role === 'Admin';
-
   const getInitials = (name: string) => name ? name.substring(0, 2).toUpperCase() : 'U';
 
   return (
-    <div className="flex flex-col h-full space-y-6">
-      <div className="flex items-center justify-between pb-4 border-b border-slate-800">
-        <h1 className="text-2xl font-bold tracking-tight text-white">Tasks</h1>
+    <div className="flex flex-col space-y-8">
+      <div className="flex items-center justify-between px-1">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-[#1d1d1f] mb-1">Tasks</h1>
+          <p className="text-[15px] text-[#86868b]">View, update, and manage action items.</p>
+        </div>
         {isAdmin && (
           <button
             onClick={() => handleOpenModal()}
-            className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-900/20 hover:bg-indigo-700 transition-all"
+            className="inline-flex items-center justify-center rounded-full bg-[#1d1d1f] px-5 py-2.5 text-[14px] font-medium text-white hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/10 transition-all duration-300"
           >
-            <Plus className="mr-2 h-4 w-4" />
+            <Plus className="mr-1.5 h-4 w-4" />
             New Task
           </button>
         )}
       </div>
 
       {loading ? (
-        <div className="flex justify-center p-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
+        <div className="flex justify-center p-16">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
         </div>
       ) : (
-        <div className="flex-1 bg-[#111318] border border-slate-800 rounded-2xl flex flex-col overflow-hidden min-h-[400px]">
-          <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-[#16191F]">
-            <h2 className="text-lg font-bold text-white">All Active Tasks</h2>
-          </div>
+        <div className="bg-white border border-gray-100 rounded-[24px] shadow-[0_4px_24px_rgba(0,0,0,0.025)] overflow-hidden">
           
-          <div className="flex-1 overflow-x-auto">
+          <div className="overflow-x-auto">
             {tasks.length === 0 ? (
-               <div className="p-12 text-center text-sm text-slate-500">No tasks found.</div>
+               <div className="p-16 text-center text-[15px] text-gray-500 font-medium">No tasks found.</div>
             ) : (
               <table className="w-full text-left min-w-[800px]">
-                <thead className="bg-[#1A1D23]/50 text-slate-500 uppercase text-[10px] font-bold tracking-widest">
+                <thead className="bg-[#fbfbfd] border-b border-gray-100 text-[#86868b] uppercase text-[11px] font-semibold tracking-wider">
                   <tr>
-                    <th className="px-6 py-4">Task Title</th>
+                    <th className="px-6 py-4 rounded-tl-[24px]">Task Title</th>
                     <th className="px-6 py-4">Project</th>
                     <th className="px-6 py-4">Assignee</th>
                     <th className="px-6 py-4">Deadline</th>
                     <th className="px-6 py-4">Status</th>
-                    <th className="px-6 py-4 text-right">Actions</th>
+                    <th className="px-6 py-4 text-right rounded-tr-[24px]">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800 text-sm">
+                <tbody className="divide-y divide-gray-100 text-[14px]">
                   {tasks.map((task) => (
-                    <tr key={task.id} className="hover:bg-slate-800/30 transition-colors">
+                    <tr key={task.id} className="hover:bg-gray-50/50 transition-colors group">
                       <td className="px-6 py-4">
-                        <div className="font-medium text-slate-200">{task.title}</div>
-                        {task.description && <div className="text-xs text-slate-500 mt-1 max-w-sm truncate">{task.description}</div>}
+                        <div className="font-medium text-[#1d1d1f]">{task.title}</div>
+                        {task.description && <div className="text-[13px] text-[#86868b] mt-0.5 max-w-sm truncate">{task.description}</div>}
                       </td>
-                      <td className="px-6 py-4 text-slate-400">{task.project.name}</td>
+                      <td className="px-6 py-4 text-[#86868b]">{task.project.name}</td>
                       <td className="px-6 py-4">
                         <div className="flex items-center space-x-2">
-                          <div className="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center text-[10px] font-bold text-white">
+                          <div className="w-[26px] h-[26px] rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-[10px] font-semibold text-gray-600">
                             {task.assignee ? getInitials(task.assignee.name) : '-'}
                           </div>
-                          <span className="text-slate-300">{task.assignee?.name || 'Unassigned'}</span>
+                          <span className="text-[#1d1d1f]">{task.assignee?.name || 'Unassigned'}</span>
                         </div>
                       </td>
-                      <td className={`px-6 py-4 ${task.deadline && isPast(parseISO(task.deadline)) && task.status !== 'Done' ? 'text-rose-400' : 'text-slate-400'}`}>
+                      <td className={`px-6 py-4 text-[13px] ${task.deadline && isPast(parseISO(task.deadline)) && task.status !== 'Done' ? 'text-red-500 font-medium' : 'text-[#86868b]'}`}>
                          {task.deadline ? format(parseISO(task.deadline), 'MMM d, yyyy') : '-'}
                       </td>
                       <td className="px-6 py-4">
                         {task.status === 'Done' ? (
-                          <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[11px] font-bold border border-emerald-500/20">DONE</span>
+                          <span className="px-2.5 py-1 rounded-full bg-green-50 text-green-700 border border-green-200 text-[11px] font-semibold">Done</span>
                         ) : task.status === 'In Progress' ? (
-                          <span className="px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-500 text-[11px] font-bold border border-amber-500/20">IN PROGRESS</span>
+                          <span className="px-2.5 py-1 rounded-full bg-orange-50 text-orange-700 border border-orange-200 text-[11px] font-semibold">In Progress</span>
                         ) : (
-                          <span className="px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-500 text-[11px] font-bold border border-blue-500/20">TO DO</span>
+                          <span className="px-2.5 py-1 rounded-full bg-gray-50 text-gray-700 border border-gray-200 text-[11px] font-semibold">To Do</span>
                         )}
                       </td>
                       <td className="px-6 py-4 text-right">
-                         <div className="flex justify-end gap-2 text-slate-500">
-                           <button onClick={() => handleOpenModal(task)} className="hover:text-indigo-400 transition-colors p-1">
+                         <div className="flex justify-end gap-1 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                           <button onClick={() => handleOpenModal(task)} className="hover:text-black hover:bg-gray-100 p-2 rounded-full transition-all">
                              <Edit className="h-4 w-4" />
                            </button>
                            {isAdmin && (
-                            <button onClick={() => handleDelete(task.id)} className="hover:text-rose-400 transition-colors p-1">
+                            <button onClick={() => handleDelete(task.id)} className="hover:text-red-500 hover:bg-red-50 p-2 rounded-full transition-all">
                               <Trash2 className="h-4 w-4" />
                             </button>
                            )}
@@ -206,18 +223,16 @@ export default function Tasks() {
             )}
           </div>
           
-          <div className="p-4 border-t border-slate-800 bg-[#16191F] flex items-center justify-between text-xs text-slate-500 font-medium">
-            <p>Showing {tasks.length} task(s)</p>
-          </div>
         </div>
       )}
 
+      {/* Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="w-full max-w-lg rounded-2xl bg-[#16191F] border border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="flex justify-between items-center p-6 border-b border-slate-800 bg-[#111318]">
-               <h2 className="text-lg font-bold text-white">{editingTask ? 'Edit Task' : 'New Task'}</h2>
-               <button onClick={() => setIsModalOpen(false)} className="text-slate-500 hover:text-white transition-colors">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm p-4 animate-in">
+          <div className="w-full max-w-lg rounded-[24px] bg-white border border-gray-100 shadow-[0_16px_40px_rgba(0,0,0,0.1)] overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="flex justify-between items-center p-6 border-b border-gray-100">
+               <h2 className="text-[20px] font-semibold tracking-tight text-[#1d1d1f]">{editingTask ? 'Edit Task' : 'New Task'}</h2>
+               <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-black transition-colors bg-gray-50 p-1.5 rounded-full">
                   <X className="w-5 h-5" />
                </button>
             </div>
@@ -226,40 +241,40 @@ export default function Tasks() {
               {isAdmin ? (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-slate-400 mb-1.5">Project <span className="text-rose-500">*</span></label>
-                    <select required value={projectId} onChange={e => setProjectId(e.target.value)} className="block w-full rounded-lg bg-[#0A0B0D] border border-slate-700 py-2.5 px-4 text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    <label className="block text-[13px] font-medium text-[#86868b] mb-1.5 ml-1">Project <span className="text-red-500">*</span></label>
+                    <select required value={projectId} onChange={e => setProjectId(e.target.value)} className="block w-full rounded-xl bg-gray-50 border border-gray-200 py-3 px-4 text-[#1d1d1f] focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white sm:text-[14px] transition-all appearance-none cursor-pointer">
                       <option value="" disabled>Select a project</option>
                       {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                     </select>
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-slate-400 mb-1.5">Title <span className="text-rose-500">*</span></label>
-                    <input required type="text" value={title} onChange={e => setTitle(e.target.value)} className="block w-full rounded-lg bg-[#0A0B0D] border border-slate-700 py-2.5 px-4 text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm placeholder:text-slate-600" placeholder="Task title..." />
+                    <label className="block text-[13px] font-medium text-[#86868b] mb-1.5 ml-1">Title <span className="text-red-500">*</span></label>
+                    <input required type="text" value={title} onChange={e => setTitle(e.target.value)} className="block w-full rounded-xl bg-gray-50 border border-gray-200 py-3 px-4 text-[#1d1d1f] focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white sm:text-[14px] transition-all placeholder:text-gray-400" placeholder="Task title..." />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-400 mb-1.5">Description</label>
-                    <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} className="block w-full rounded-lg bg-[#0A0B0D] border border-slate-700 py-2.5 px-4 text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm placeholder:text-slate-600" placeholder="Add more details..."></textarea>
+                    <label className="block text-[13px] font-medium text-[#86868b] mb-1.5 ml-1">Description</label>
+                    <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} className="block w-full rounded-xl bg-gray-50 border border-gray-200 py-3 px-4 text-[#1d1d1f] focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white sm:text-[14px] transition-all placeholder:text-gray-400" placeholder="Add more details..."></textarea>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
-                      <label className="block text-sm font-medium text-slate-400 mb-1.5">Assign To</label>
-                      <select value={assignedTo} onChange={e => setAssignedTo(e.target.value)} className="block w-full rounded-lg bg-[#0A0B0D] border border-slate-700 py-2.5 px-3 text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                      <label className="block text-[13px] font-medium text-[#86868b] mb-1.5 ml-1">Assign To</label>
+                      <select value={assignedTo} onChange={e => setAssignedTo(e.target.value)} className="block w-full rounded-xl bg-gray-50 border border-gray-200 py-3 px-4 text-[#1d1d1f] focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white sm:text-[14px] transition-all appearance-none cursor-pointer">
                         <option value="">Unassigned</option>
                         {users.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-400 mb-1.5">Deadline</label>
-                      <input type="datetime-local" value={deadline} onChange={e => setDeadline(e.target.value)} className="block w-full rounded-lg bg-[#0A0B0D] border border-slate-700 py-2.5 px-3 text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+                      <label className="block text-[13px] font-medium text-[#86868b] mb-1.5 ml-1">Deadline</label>
+                      <input type="datetime-local" value={deadline} onChange={e => setDeadline(e.target.value)} className="block w-full rounded-xl bg-gray-50 border border-gray-200 py-3 px-4 text-[#1d1d1f] focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white sm:text-[14px] transition-all" />
                     </div>
                   </div>
                 </>
               ) : (
-                <div className="p-4 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-start">
-                  <div className="text-sm text-indigo-400">
+                <div className="p-4 rounded-[16px] bg-blue-50 border border-blue-100 flex items-start">
+                  <div className="text-[14px] text-blue-800">
                     <p className="font-semibold mb-1">Status Update Only</p>
                     <p className="opacity-80">As a Team Member, you can only update the status of your assigned tasks. Contact an Admin for other changes.</p>
                   </div>
@@ -267,17 +282,17 @@ export default function Tasks() {
               )}
 
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-1.5">Status</label>
-                <select value={status} onChange={e => setStatus(e.target.value as TaskStatus)} className="block w-full rounded-lg bg-[#0A0B0D] border border-slate-700 py-2.5 px-4 text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                <label className="block text-[13px] font-medium text-[#86868b] mb-1.5 ml-1">Status</label>
+                <select value={status} onChange={e => setStatus(e.target.value as TaskStatus)} className="block w-full rounded-xl bg-gray-50 border border-gray-200 py-3 px-4 text-[#1d1d1f] focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white sm:text-[14px] transition-all appearance-none cursor-pointer">
                   <option value="To Do">To Do</option>
                   <option value="In Progress">In Progress</option>
                   <option value="Done">Done</option>
                 </select>
               </div>
               
-              <div className="pt-4 flex justify-end gap-3 border-t border-slate-800 mt-6">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="inline-flex items-center justify-center rounded-lg bg-[#1A1D23] border border-slate-700 px-5 py-2.5 text-sm font-medium text-slate-300 hover:bg-slate-800 transition-colors">Cancel</button>
-                <button type="submit" className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-900/20 hover:bg-indigo-700 transition-all">Save Changes</button>
+              <div className="pt-4 flex justify-end gap-3 border-t border-gray-100 mt-6">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="inline-flex items-center justify-center rounded-full bg-white border border-gray-200 px-5 py-2.5 text-[14px] font-medium text-gray-700 hover:bg-gray-50 transition-colors">Cancel</button>
+                <button type="submit" className="inline-flex items-center justify-center rounded-full bg-[#1d1d1f] px-6 py-2.5 text-[14px] font-semibold text-white shadow-sm hover:bg-black transition-all">Save Changes</button>
               </div>
             </form>
           </div>

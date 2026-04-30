@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, ClipboardList } from 'lucide-react';
+import { Loader2, CheckSquare } from 'lucide-react';
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -46,32 +46,31 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0B0D] flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans text-slate-200">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md flex flex-col items-center">
-        <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center mb-6 shadow-lg shadow-indigo-900/40">
-          <ClipboardList className="w-7 h-7 text-white" />
+    <div className="min-h-screen bg-[#fbfbfd] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 font-sans animate-in">
+      <div className="sm:mx-auto sm:w-full sm:max-w-[420px] flex flex-col items-center">
+        <div className="w-12 h-12 bg-black rounded-[14px] flex items-center justify-center mb-6 shadow-md shadow-black/10">
+          <CheckSquare className="w-6 h-6 text-white" />
         </div>
-        <h2 className="text-center text-3xl font-bold tracking-tight text-white mb-2">
+        <h2 className="text-center text-[28px] font-semibold tracking-tight text-[#1d1d1f] mb-2">
           {isLogin ? 'Welcome back' : 'Create an account'}
         </h2>
-        <p className="text-center text-sm text-slate-500">
-          Sign in to access your TaskSchedule workspace
+        <p className="text-center text-[15px] text-[#86868b]">
+          {isLogin ? 'Sign in to access your workspace' : 'Join TaskSchedule to manage projects'}
         </p>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-[#16191F] py-8 px-4 shadow-xl border border-slate-800 sm:rounded-2xl sm:px-10">
-          <form className="space-y-6" onSubmit={handleAuth}>
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-[420px]">
+        <div className="bg-white py-10 px-6 sm:rounded-[24px] sm:px-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100">
+          <form className="space-y-5" onSubmit={handleAuth}>
             {error && (
-              <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 p-3 rounded-lg text-sm text-center">
+              <div className="bg-red-50/80 text-red-600 p-3.5 rounded-xl text-sm text-center border border-red-100">
                 {error}
               </div>
             )}
             
             {!isLogin && (
-              <div className="space-y-5">
+              <div className="space-y-4 text-left">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-slate-400 mb-1.5">Full Name</label>
                   <input
                     id="name"
                     name="name"
@@ -79,58 +78,63 @@ export default function Auth() {
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="block w-full rounded-lg bg-[#0A0B0D] border border-slate-700 py-2.5 px-4 text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-colors"
+                    placeholder="Full Name"
+                    className="block w-full rounded-xl bg-gray-50/50 border border-gray-200 py-3.5 px-4 text-[#1d1d1f] focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white sm:text-[15px] transition-all placeholder:text-[#86868b]"
                   />
                 </div>
-                <div>
-                  <label htmlFor="role" className="block text-sm font-medium text-slate-400 mb-1.5">Role</label>
+                <div className="relative">
                   <select
                     id="role"
                     name="role"
                     value={role}
                     onChange={(e) => setRole(e.target.value as 'Member' | 'Admin')}
-                    className="block w-full rounded-lg bg-[#0A0B0D] border border-slate-700 py-2.5 px-4 text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-colors"
+                    className="block w-full rounded-xl bg-gray-50/50 border border-gray-200 py-3.5 px-4 text-[#1d1d1f] focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white sm:text-[15px] transition-all appearance-none"
                   >
-                    <option value="Member">Member</option>
-                    <option value="Admin">Admin</option>
+                    <option value="Member">Team Member</option>
+                    <option value="Admin">Administrator</option>
                   </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                  </div>
                 </div>
               </div>
             )}
             
-            <div>
-              <label htmlFor="email-address" className="block text-sm font-medium text-slate-400 mb-1.5">Email address</label>
-              <input
-                id="email-address"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="block w-full rounded-lg bg-[#0A0B0D] border border-slate-700 py-2.5 px-4 text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-colors"
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-400 mb-1.5">Password</label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete={isLogin ? "current-password" : "new-password"}
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="block w-full rounded-lg bg-[#0A0B0D] border border-slate-700 py-2.5 px-4 text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-colors"
-              />
+            <div className="space-y-4">
+              <div>
+                <input
+                  id="email-address"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Email address"
+                  className="block w-full rounded-xl bg-gray-50/50 border border-gray-200 py-3.5 px-4 text-[#1d1d1f] focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white sm:text-[15px] transition-all placeholder:text-[#86868b]"
+                />
+              </div>
+              
+              <div>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autoComplete={isLogin ? "current-password" : "new-password"}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Password"
+                  className="block w-full rounded-xl bg-gray-50/50 border border-gray-200 py-3.5 px-4 text-[#1d1d1f] focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white sm:text-[15px] transition-all placeholder:text-[#86868b]"
+                />
+              </div>
             </div>
 
             <div className="pt-2">
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-lg shadow-indigo-900/20 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all focus:ring-offset-[#16191F]"
+                className="w-full flex justify-center py-3.5 px-4 rounded-full text-[15px] font-semibold text-white bg-[#1d1d1f] hover:bg-black focus:outline-none focus:ring-4 focus:ring-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform active:scale-[0.98] shadow-sm hover:shadow-md"
               >
                 {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
                 {isLogin ? 'Sign In' : 'Create Account'}
@@ -138,30 +142,17 @@ export default function Auth() {
             </div>
           </form>
           
-          <div className="mt-8">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-800" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="bg-[#16191F] px-4 text-slate-500">
-                  {isLogin ? "New to TaskSchedule?" : "Already have an account?"}
-                </span>
-              </div>
-            </div>
-
-            <div className="mt-6">
+          <div className="mt-8 text-center border-t border-gray-100 pt-6">
+            <p className="text-[14px] text-[#86868b]">
+              {isLogin ? "Don't have an account? " : "Already have an account? "}
               <button
                 type="button"
-                onClick={() => {
-                  setIsLogin(!isLogin);
-                  setError(null);
-                }}
-                className="w-full flex justify-center py-2.5 px-4 border border-slate-700 rounded-lg shadow-sm text-sm font-medium text-slate-300 bg-[#1A1D23] hover:bg-slate-800 transition-colors"
+                onClick={() => { setIsLogin(!isLogin); setError(null); }}
+                className="font-medium text-[#1d1d1f] hover:underline"
               >
-                {isLogin ? 'Create an account' : 'Sign in instead'}
+                {isLogin ? 'Create one now' : 'Sign in instead'}
               </button>
-            </div>
+            </p>
           </div>
         </div>
       </div>
