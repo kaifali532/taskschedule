@@ -140,13 +140,13 @@ export default function Tasks() {
     <div className="flex flex-col space-y-8">
       <div className="flex items-center justify-between px-1">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-[#1d1d1f] mb-1">Tasks</h1>
-          <p className="text-[15px] text-[#86868b]">View, update, and manage action items.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-white mb-1">Tasks</h1>
+          <p className="text-[15px] text-zinc-400">View, update, and manage action items.</p>
         </div>
         {isAdmin && (
           <button
             onClick={() => handleOpenModal()}
-            className="inline-flex items-center justify-center rounded-full bg-[#1d1d1f] px-5 py-2.5 text-[14px] font-medium text-white hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/10 transition-all duration-300"
+            className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 px-5 py-2.5 text-[14px] font-medium text-white hover:from-indigo-500 hover:to-purple-500 hover:-translate-y-0.5 hover:shadow-[0_4px_14px_0_rgba(79,70,229,0.39)] transition-all duration-300"
           >
             <Plus className="mr-1.5 h-4 w-4" />
             New Task
@@ -159,14 +159,14 @@ export default function Tasks() {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
         </div>
       ) : (
-        <div className="bg-white border border-gray-100 shadow-[0_4px_24px_rgba(0,0,0,0.025)] rounded-[24px] overflow-hidden">
+        <div className="bg-[#18181b] border border-white/5 shadow-[0_4px_24px_rgba(0,0,0,0.2)] rounded-[24px] overflow-hidden">
           
           <div className="overflow-x-auto">
             {tasks.length === 0 ? (
-               <div className="p-16 text-center text-[15px] text-gray-500 font-medium">No tasks found.</div>
+               <div className="p-16 text-center text-[15px] text-zinc-500 font-medium">No tasks found.</div>
             ) : (
               <table className="w-full text-left min-w-[800px]">
-                <thead className="bg-[#fbfbfd] border-b border-gray-100 text-gray-500 uppercase text-[11px] font-semibold tracking-wider">
+                <thead className="bg-zinc-900/50 border-b border-white/10 text-zinc-500 uppercase text-[11px] font-semibold tracking-wider">
                   <tr>
                     <th className="px-6 py-4 rounded-tl-[24px]">Task Title</th>
                     <th className="px-6 py-4">Project</th>
@@ -176,41 +176,41 @@ export default function Tasks() {
                     <th className="px-6 py-4 text-right rounded-tr-[24px]">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100 text-[14px]">
+                <tbody className="divide-y divide-white/5 text-[14px]">
                   {tasks.map((task) => (
-                    <tr key={task.id} className="hover:bg-gray-50/50 transition-colors group">
+                    <tr key={task.id} className="hover:bg-white/5 transition-colors group">
                       <td className="px-6 py-4">
-                        <div className={`font-medium ${task.status === 'Done' ? 'text-gray-400 line-through' : 'text-[#1d1d1f]'}`}>{task.title}</div>
-                        {task.description && <div className="text-[13px] text-gray-500 mt-0.5 max-w-sm truncate">{task.description}</div>}
+                        <div className={`font-medium ${task.status === 'Done' ? 'text-zinc-500 line-through' : 'text-zinc-100'}`}>{task.title}</div>
+                        {task.description && <div className="text-[13px] text-zinc-500 mt-0.5 max-w-sm truncate">{task.description}</div>}
                       </td>
-                      <td className="px-6 py-4 text-gray-500">{task.project.name}</td>
+                      <td className="px-6 py-4 text-zinc-400">{task.project.name}</td>
                       <td className="px-6 py-4">
                         <div className="flex items-center space-x-2">
-                          <div className="w-[26px] h-[26px] rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-[10px] font-semibold text-gray-600">
+                          <div className="w-[26px] h-[26px] rounded-full bg-zinc-800 border border-white/10 flex items-center justify-center text-[10px] font-semibold text-zinc-400">
                             {task.assignee ? getInitials(task.assignee.name) : '-'}
                           </div>
-                          <span className="text-[#1d1d1f]">{task.assignee?.name || 'Unassigned'}</span>
+                          <span className="text-zinc-300">{task.assignee?.name || 'Unassigned'}</span>
                         </div>
                       </td>
-                      <td className={`px-6 py-4 text-[13px] ${task.deadline && isPast(parseISO(task.deadline)) && task.status !== 'Done' ? 'text-red-500 font-medium' : 'text-gray-500'}`}>
+                      <td className={`px-6 py-4 text-[13px] ${task.deadline && isPast(parseISO(task.deadline)) && task.status !== 'Done' ? 'text-red-400 font-medium' : 'text-zinc-500'}`}>
                          {task.deadline ? format(parseISO(task.deadline), 'MMM d, yyyy') : '-'}
                       </td>
                       <td className="px-6 py-4">
                         {task.status === 'Done' ? (
-                          <span className="px-2.5 py-1 rounded-full bg-green-50 text-green-600 border border-green-100 text-[11px] font-semibold">Done</span>
+                          <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[11px] font-semibold">Done</span>
                         ) : task.status === 'In Progress' ? (
-                          <span className="px-2.5 py-1 rounded-full bg-orange-50 text-orange-600 border border-orange-100 text-[11px] font-semibold">In Progress</span>
+                          <span className="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[11px] font-semibold">In Progress</span>
                         ) : (
-                          <span className="px-2.5 py-1 rounded-full bg-gray-50 text-gray-600 border border-gray-200 text-[11px] font-semibold">To Do</span>
+                          <span className="px-2.5 py-1 rounded-full bg-slate-500/10 text-slate-300 border border-slate-500/20 text-[11px] font-semibold">To Do</span>
                         )}
                       </td>
                       <td className="px-6 py-4 text-right">
-                         <div className="flex justify-end gap-1 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                           <button onClick={() => handleOpenModal(task)} className="hover:text-[#1d1d1f] hover:bg-gray-100 p-2 rounded-full transition-all">
+                         <div className="flex justify-end gap-1 text-zinc-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                           <button onClick={() => handleOpenModal(task)} className="hover:text-indigo-400 hover:bg-white/5 p-2 rounded-full transition-all">
                              <Edit className="h-4 w-4" />
                            </button>
                            {isAdmin && (
-                            <button onClick={() => handleDelete(task.id)} className="hover:text-red-500 hover:bg-red-50 p-2 rounded-full transition-all">
+                            <button onClick={() => handleDelete(task.id)} className="hover:text-red-400 hover:bg-red-500/10 p-2 rounded-full transition-all">
                               <Trash2 className="h-4 w-4" />
                             </button>
                            )}
@@ -228,14 +228,14 @@ export default function Tasks() {
 
       {/* Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm p-4 animate-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in">
           <div className="outer-card w-full max-w-lg">
             <span className="glow-layer"></span>
             <span className="glow-layer blur-strong"></span>
             <div className="w-full card-internal overflow-hidden flex flex-col max-h-[90vh]">
-              <div className="flex justify-between items-center p-6 border-b border-gray-100">
-                 <h2 className="text-[20px] font-semibold tracking-tight text-[#1d1d1f]">{editingTask ? 'Edit Task' : 'New Task'}</h2>
-                 <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-black transition-colors bg-gray-50 p-1.5 rounded-full">
+              <div className="flex justify-between items-center p-6 border-b border-white/10">
+                 <h2 className="text-[20px] font-semibold tracking-tight text-white">{editingTask ? 'Edit Task' : 'New Task'}</h2>
+                 <button onClick={() => setIsModalOpen(false)} className="text-zinc-500 hover:text-white transition-colors bg-white/5 p-1.5 rounded-full">
                     <X className="w-5 h-5" />
                  </button>
               </div>
@@ -244,40 +244,40 @@ export default function Tasks() {
                 {isAdmin ? (
                   <>
                     <div>
-                      <label className="block text-[13px] font-medium text-gray-500 mb-1.5 ml-1">Project <span className="text-red-500">*</span></label>
-                      <select required value={projectId} onChange={e => setProjectId(e.target.value)} className="block w-full rounded-xl bg-gray-50 border border-gray-200 py-3 px-4 text-[#1d1d1f] focus:outline-none focus:ring-2 focus:ring-blue-500 sm:text-[14px] transition-all appearance-none cursor-pointer">
+                      <label className="block text-[13px] font-medium text-zinc-400 mb-1.5 ml-1">Project <span className="text-red-500">*</span></label>
+                      <select required value={projectId} onChange={e => setProjectId(e.target.value)} className="block w-full rounded-xl bg-zinc-900 border border-white/10 py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-[14px] transition-all appearance-none cursor-pointer">
                         <option value="" disabled>Select a project</option>
                         {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                       </select>
                     </div>
                     
                     <div>
-                      <label className="block text-[13px] font-medium text-gray-500 mb-1.5 ml-1">Title <span className="text-red-500">*</span></label>
-                      <input required type="text" value={title} onChange={e => setTitle(e.target.value)} className="block w-full rounded-xl bg-gray-50 border border-gray-200 py-3 px-4 text-[#1d1d1f] focus:outline-none focus:ring-2 focus:ring-blue-500 sm:text-[14px] transition-all placeholder:text-gray-400" placeholder="Task title..." />
+                      <label className="block text-[13px] font-medium text-zinc-400 mb-1.5 ml-1">Title <span className="text-red-500">*</span></label>
+                      <input required type="text" value={title} onChange={e => setTitle(e.target.value)} className="block w-full rounded-xl bg-zinc-900 border border-white/10 py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-[14px] transition-all placeholder:text-zinc-500" placeholder="Task title..." />
                     </div>
 
                     <div>
-                      <label className="block text-[13px] font-medium text-gray-500 mb-1.5 ml-1">Description</label>
-                      <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} className="block w-full rounded-xl bg-gray-50 border border-gray-200 py-3 px-4 text-[#1d1d1f] focus:outline-none focus:ring-2 focus:ring-blue-500 sm:text-[14px] transition-all placeholder:text-gray-400" placeholder="Add more details..."></textarea>
+                      <label className="block text-[13px] font-medium text-zinc-400 mb-1.5 ml-1">Description</label>
+                      <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} className="block w-full rounded-xl bg-zinc-900 border border-white/10 py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-[14px] transition-all placeholder:text-zinc-500" placeholder="Add more details..."></textarea>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                       <div>
-                        <label className="block text-[13px] font-medium text-gray-500 mb-1.5 ml-1">Assign To</label>
-                        <select value={assignedTo} onChange={e => setAssignedTo(e.target.value)} className="block w-full rounded-xl bg-gray-50 border border-gray-200 py-3 px-4 text-[#1d1d1f] focus:outline-none focus:ring-2 focus:ring-blue-500 sm:text-[14px] transition-all appearance-none cursor-pointer">
+                        <label className="block text-[13px] font-medium text-zinc-400 mb-1.5 ml-1">Assign To</label>
+                        <select value={assignedTo} onChange={e => setAssignedTo(e.target.value)} className="block w-full rounded-xl bg-zinc-900 border border-white/10 py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-[14px] transition-all appearance-none cursor-pointer">
                           <option value="">Unassigned</option>
                           {users.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
                         </select>
                       </div>
                       <div>
-                        <label className="block text-[13px] font-medium text-gray-500 mb-1.5 ml-1">Deadline</label>
-                        <input type="datetime-local" value={deadline} onChange={e => setDeadline(e.target.value)} className="block w-full rounded-xl bg-gray-50 border border-gray-200 py-3 px-4 text-[#1d1d1f] focus:outline-none focus:ring-2 focus:ring-blue-500 sm:text-[14px] transition-all" />
+                        <label className="block text-[13px] font-medium text-zinc-400 mb-1.5 ml-1">Deadline</label>
+                        <input type="datetime-local" value={deadline} onChange={e => setDeadline(e.target.value)} className="block w-full rounded-xl bg-zinc-900 border border-white/10 py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-[14px] transition-all" />
                       </div>
                     </div>
                   </>
                 ) : (
-                  <div className="p-4 rounded-[16px] bg-blue-50 border border-blue-100 flex items-start">
-                    <div className="text-[14px] text-blue-800">
+                  <div className="p-4 rounded-[16px] bg-indigo-500/10 border border-indigo-500/20 flex items-start">
+                    <div className="text-[14px] text-indigo-400">
                       <p className="font-semibold mb-1">Status Update Only</p>
                       <p className="opacity-80">As a Team Member, you can only update the status of your assigned tasks. Contact an Admin for other changes.</p>
                     </div>
@@ -285,17 +285,17 @@ export default function Tasks() {
                 )}
 
                 <div>
-                  <label className="block text-[13px] font-medium text-gray-500 mb-1.5 ml-1">Status</label>
-                  <select value={status} onChange={e => setStatus(e.target.value as TaskStatus)} className="block w-full rounded-xl bg-gray-50 border border-gray-200 py-3 px-4 text-[#1d1d1f] focus:outline-none focus:ring-2 focus:ring-blue-500 sm:text-[14px] transition-all appearance-none cursor-pointer">
+                  <label className="block text-[13px] font-medium text-zinc-400 mb-1.5 ml-1">Status</label>
+                  <select value={status} onChange={e => setStatus(e.target.value as TaskStatus)} className="block w-full rounded-xl bg-zinc-900 border border-white/10 py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-[14px] transition-all appearance-none cursor-pointer">
                     <option value="To Do">To Do</option>
                     <option value="In Progress">In Progress</option>
                     <option value="Done">Done</option>
                   </select>
                 </div>
                 
-                <div className="pt-4 flex justify-end gap-3 border-t border-gray-100 mt-6">
-                  <button type="button" onClick={() => setIsModalOpen(false)} className="inline-flex items-center justify-center rounded-full bg-white border border-gray-200 px-5 py-2.5 text-[14px] font-medium text-gray-700 hover:bg-gray-50 transition-colors">Cancel</button>
-                  <button type="submit" className="inline-flex items-center justify-center rounded-full bg-[#1d1d1f] px-6 py-2.5 text-[14px] font-semibold text-white shadow-sm hover:bg-black transition-all">Save Changes</button>
+                <div className="pt-4 flex justify-end gap-3 border-t border-white/10 mt-6">
+                  <button type="button" onClick={() => setIsModalOpen(false)} className="inline-flex items-center justify-center rounded-full bg-zinc-800 border border-white/10 px-5 py-2.5 text-[14px] font-medium text-white hover:bg-zinc-700 transition-colors">Cancel</button>
+                  <button type="submit" className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-2.5 text-[14px] font-semibold text-white shadow-sm hover:from-indigo-500 hover:to-purple-500 transition-all shadow-[0_4px_14px_0_rgba(79,70,229,0.39)] hover:shadow-[0_6px_20px_rgba(79,70,229,0.23)]">Save Changes</button>
                 </div>
               </form>
             </div>

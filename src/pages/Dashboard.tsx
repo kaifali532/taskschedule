@@ -47,8 +47,8 @@ export default function Dashboard() {
   return (
     <div className="flex flex-col w-full">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-[#1d1d1f] mb-1">Hi, {profile?.name?.split(' ')[0]}</h1>
-        <p className="text-[15px] text-[#86868b]">Here's an overview of your tasks.</p>
+        <h1 className="text-3xl font-bold tracking-tight text-white mb-1">Hi, {profile?.name?.split(' ')[0]}</h1>
+        <p className="text-[15px] text-zinc-400">Here's an overview of your tasks.</p>
       </div>
 
       {/* Stats Grid */}
@@ -57,8 +57,8 @@ export default function Dashboard() {
           <span className="glow-layer"></span>
           <span className="glow-layer blur-strong"></span>
           <div className="card-internal p-6">
-            <p className="text-[#86868b] text-[12px] font-semibold uppercase tracking-wider mb-2">Total Tasks</p>
-            <h3 className="text-[40px] leading-none font-bold tracking-tight text-[#1d1d1f]">{totalTasks}</h3>
+            <p className="text-zinc-400 text-[12px] font-semibold uppercase tracking-wider mb-2">Total Tasks</p>
+            <h3 className="text-[40px] leading-none font-bold tracking-tight text-white">{totalTasks}</h3>
           </div>
         </div>
         
@@ -67,12 +67,12 @@ export default function Dashboard() {
           <span className="glow-layer blur-strong"></span>
           <div className="card-internal p-6 flex flex-col justify-between">
             <div>
-              <p className="text-[#86868b] text-[12px] font-semibold uppercase tracking-wider mb-2">Completed</p>
-              <h3 className="text-[40px] leading-none font-bold tracking-tight text-[#1d1d1f]">{completedTasks}</h3>
+              <p className="text-zinc-400 text-[12px] font-semibold uppercase tracking-wider mb-2">Completed</p>
+              <h3 className="text-[40px] leading-none font-bold tracking-tight text-white">{completedTasks}</h3>
             </div>
-            <div className="mt-4 w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
+            <div className="mt-4 w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
               <div 
-                className="bg-black h-full rounded-full transition-all duration-1000 ease-out" 
+                className="bg-indigo-500 h-full rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(99,102,241,0.5)]" 
                 style={{ width: `${completionPercentage}%` }}
               ></div>
             </div>
@@ -83,55 +83,55 @@ export default function Dashboard() {
           <span className="glow-layer"></span>
           <span className="glow-layer blur-strong"></span>
           <div className="card-internal p-6">
-            <p className="text-[#86868b] text-[12px] font-semibold uppercase tracking-wider mb-2">Pending</p>
-            <h3 className="text-[40px] leading-none font-bold tracking-tight text-[#1d1d1f]">{pendingTasks}</h3>
+            <p className="text-zinc-400 text-[12px] font-semibold uppercase tracking-wider mb-2">Pending</p>
+            <h3 className="text-[40px] leading-none font-bold tracking-tight text-white">{pendingTasks}</h3>
           </div>
         </div>
 
         <div className="outer-card">
           <span className="glow-layer"></span>
           <span className="glow-layer blur-strong"></span>
-          <div className={`card-internal p-6 ${overdueTasks > 0 ? 'bg-red-50/10 border-red-100' : ''}`}>
-            <p className={`text-[12px] font-semibold uppercase tracking-wider mb-2 ${overdueTasks > 0 ? 'text-red-500' : 'text-[#86868b]'}`}>Overdue</p>
-            <h3 className="text-[40px] leading-none font-bold tracking-tight text-[#1d1d1f]">{overdueTasks}</h3>
+          <div className={`card-internal p-6 ${overdueTasks > 0 ? 'bg-red-500/10 border-red-500/20' : ''}`}>
+            <p className={`text-[12px] font-semibold uppercase tracking-wider mb-2 ${overdueTasks > 0 ? 'text-red-400' : 'text-zinc-400'}`}>Overdue</p>
+            <h3 className="text-[40px] leading-none font-bold tracking-tight text-white">{overdueTasks}</h3>
           </div>
         </div>
       </div>
 
       <div className="flex items-center justify-between mb-4 px-1">
-        <h2 className="text-[20px] font-semibold tracking-tight text-[#1d1d1f]">Recent Activity</h2>
-        <Link to="/tasks" className="text-[14px] font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1 transition-colors">
+        <h2 className="text-[20px] font-semibold tracking-tight text-white">Recent Activity</h2>
+        <Link to="/tasks" className="text-[14px] font-medium text-indigo-400 hover:text-indigo-300 flex items-center gap-1 transition-colors">
           View all <ArrowRight className="w-4 h-4 ml-0.5" />
         </Link>
       </div>
       
-      <div className="bg-white border border-gray-100 rounded-[24px] shadow-[0_4px_24px_rgba(0,0,0,0.025)] overflow-hidden">
+      <div className="bg-[#18181b] border border-white/5 rounded-[24px] shadow-[0_4px_24px_rgba(0,0,0,0.2)] overflow-hidden">
         {tasks.length > 0 ? (
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-white/5">
             {tasks.slice(0, 5).map(task => (
-              <div key={task.id} className="p-5 sm:px-6 hover:bg-gray-50/50 transition-colors flex items-center justify-between group">
+              <div key={task.id} className="p-5 sm:px-6 hover:bg-white/5 transition-colors flex items-center justify-between group">
                 <div className="flex items-center gap-4">
                   <div className="mt-0.5">
                     {task.status === 'Done' ? (
-                       <CheckCircle2 className="w-5 h-5 text-green-500" />
+                       <CheckCircle2 className="w-5 h-5 text-emerald-400" />
                     ) : (
-                       <div className={`w-5 h-5 rounded-full border-2 ${task.status === 'In Progress' ? 'border-orange-400 border-t-orange-200' : 'border-gray-300'}`}></div>
+                       <div className={`w-5 h-5 rounded-full border-2 ${task.status === 'In Progress' ? 'border-amber-400 border-t-amber-200' : 'border-zinc-500'}`}></div>
                     )}
                   </div>
                   <div>
-                    <h4 className={`text-[15px] font-medium transition-colors ${task.status === 'Done' ? 'text-gray-400 line-through' : 'text-[#1d1d1f]'}`}>
+                    <h4 className={`text-[15px] font-medium transition-colors ${task.status === 'Done' ? 'text-zinc-500 line-through' : 'text-zinc-100'}`}>
                       {task.title}
                     </h4>
                     {task.description && (
-                      <p className="text-[13px] text-gray-500 mt-0.5 line-clamp-1 max-w-sm sm:max-w-md">{task.description}</p>
+                      <p className="text-[13px] text-zinc-400 mt-0.5 line-clamp-1 max-w-sm sm:max-w-md">{task.description}</p>
                     )}
                   </div>
                 </div>
                 <div className="hidden sm:block">
                   <span className={`inline-flex px-2.5 py-1 text-[11px] font-semibold rounded-full border ${
-                    task.status === 'Done' ? 'bg-green-50 text-green-600 border-green-100' : 
-                    task.status === 'In Progress' ? 'bg-orange-50 text-orange-600 border-orange-100' : 
-                    'bg-gray-50 text-gray-600 border-gray-200'
+                    task.status === 'Done' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 
+                    task.status === 'In Progress' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 
+                    'bg-slate-500/10 text-slate-300 border-slate-500/20'
                   }`}>
                     {task.status}
                   </span>
@@ -141,8 +141,8 @@ export default function Dashboard() {
           </div>
         ) : (
           <div className="p-12 text-center">
-            <p className="text-[15px] text-gray-500 font-medium">No tasks yet.</p>
-            <p className="text-[14px] text-gray-400 mt-1">Get started by creating a new task.</p>
+            <p className="text-[15px] text-zinc-400 font-medium">No tasks yet.</p>
+            <p className="text-[14px] text-zinc-500 mt-1">Get started by creating a new task.</p>
           </div>
         )}
       </div>

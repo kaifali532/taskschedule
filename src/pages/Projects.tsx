@@ -120,13 +120,13 @@ export default function Projects() {
     <div className="flex flex-col space-y-8">
       <div className="flex items-center justify-between px-1">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-[#1d1d1f] mb-1">Projects</h1>
-          <p className="text-[15px] text-[#86868b]">Manage and organize your work.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-white mb-1">Projects</h1>
+          <p className="text-[15px] text-zinc-400">Manage and organize your work.</p>
         </div>
         {isAdmin && !isCreating && (
           <button
             onClick={() => setIsCreating(true)}
-            className="inline-flex items-center justify-center rounded-full bg-[#1d1d1f] px-5 py-2.5 text-[14px] font-medium text-white hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/10 transition-all duration-300"
+            className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 px-5 py-2.5 text-[14px] font-medium text-white hover:from-indigo-500 hover:to-purple-500 hover:-translate-y-0.5 hover:shadow-[0_4px_14px_0_rgba(79,70,229,0.39)] transition-all duration-300"
           >
             <Plus className="mr-1.5 h-4 w-4" />
             New Project
@@ -135,51 +135,51 @@ export default function Projects() {
       </div>
 
       {deleteError && (
-        <div className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-100 mb-4 flex items-center justify-between">
+        <div className="bg-red-500/10 text-red-400 p-4 rounded-xl border border-red-500/20 mb-4 flex items-center justify-between">
           <p className="text-[14px]">{deleteError}</p>
-          <button onClick={() => setDeleteError(null)} className="text-red-400 hover:text-red-700">
+          <button onClick={() => setDeleteError(null)} className="text-red-400 hover:text-red-300">
             <X className="w-4 h-4" />
           </button>
         </div>
       )}
 
       {isCreating && (
-        <div className="bg-white p-6 md:p-8 rounded-[24px] border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] animate-in mb-4 relative">
-           <button onClick={() => setIsCreating(false)} className="absolute top-6 right-6 text-gray-400 hover:text-black transition-colors">
+        <div className="bg-[#18181b] p-6 md:p-8 rounded-[24px] border border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.2)] animate-in mb-4 relative">
+           <button onClick={() => setIsCreating(false)} className="absolute top-6 right-6 text-zinc-500 hover:text-white transition-colors">
               <X className="w-5 h-5"/>
            </button>
-           <h3 className="text-xl font-semibold mb-6">Create New Project</h3>
+           <h3 className="text-xl font-semibold mb-6 text-white">Create New Project</h3>
           <form onSubmit={handleCreateProject} className="flex flex-col gap-4">
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1">
-                <label htmlFor="projectName" className="block text-[13px] font-medium text-gray-500 mb-2 ml-1">Project Name <span className="text-red-500">*</span></label>
+                <label htmlFor="projectName" className="block text-[13px] font-medium text-zinc-400 mb-2 ml-1">Project Name <span className="text-red-500">*</span></label>
                 <input
                   type="text"
                   id="projectName"
                   required
                   value={newProjectName}
                   onChange={(e) => setNewProjectName(e.target.value)}
-                  className="block w-full rounded-xl bg-gray-50 border border-gray-200 py-3.5 px-4 text-[#1d1d1f] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-[15px] transition-all placeholder:text-gray-400"
+                  className="block w-full rounded-xl bg-zinc-900 border border-white/10 py-3.5 px-4 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent sm:text-[15px] transition-all placeholder:text-zinc-500"
                   placeholder="E.g., Q1 Marketing Campaign"
                   autoFocus
                 />
               </div>
             </div>
             <div>
-              <label htmlFor="projectDesc" className="block text-[13px] font-medium text-gray-500 mb-2 ml-1">Project Description</label>
+              <label htmlFor="projectDesc" className="block text-[13px] font-medium text-zinc-400 mb-2 ml-1">Project Description</label>
               <textarea
                 id="projectDesc"
                 rows={3}
                 value={newProjectDesc}
                 onChange={(e) => setNewProjectDesc(e.target.value)}
-                className="block w-full rounded-xl bg-gray-50 border border-gray-200 py-3 px-4 text-[#1d1d1f] focus:outline-none focus:ring-2 focus:ring-blue-500 sm:text-[14px] transition-all placeholder:text-gray-400"
+                className="block w-full rounded-xl bg-zinc-900 border border-white/10 py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-[14px] transition-all placeholder:text-zinc-500"
                 placeholder="Add a brief description of this project..."
               ></textarea>
             </div>
             <div className="flex justify-end gap-3 mt-2">
                <button
                  type="submit"
-                 className="inline-flex items-center justify-center rounded-xl bg-[#1d1d1f] px-6 py-3.5 text-[15px] font-semibold text-white shadow-sm hover:bg-black transition-all"
+                 className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-3.5 text-[15px] font-semibold text-white shadow-sm hover:from-indigo-500 hover:to-purple-500 transition-all shadow-[0_4px_14px_0_rgba(79,70,229,0.39)] hover:shadow-[0_6px_20px_rgba(79,70,229,0.23)]"
                >
                  Create Project
                </button>
@@ -200,13 +200,13 @@ export default function Projects() {
               <span className="glow-layer blur-strong"></span>
               <div className="card-internal flex flex-col p-6 overflow-hidden">
                  <div className="flex items-start justify-between mb-8 flex-1">
-                    <div className="w-12 h-12 rounded-[14px] bg-blue-50 text-blue-600 flex items-center justify-center mb-4">
+                    <div className="w-12 h-12 rounded-[14px] bg-indigo-500/10 text-indigo-400 flex items-center justify-center mb-4">
                        <Folder className="w-6 h-6" />
                     </div>
                     {isAdmin && (
                       <button
                         onClick={(e) => handleDeleteProject(project.id, e)}
-                        className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-full transition-all"
+                        className="opacity-0 group-hover:opacity-100 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 p-2 rounded-full transition-all"
                         title="Delete Project"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -214,28 +214,28 @@ export default function Projects() {
                     )}
                  </div>
                  <div>
-                    <h3 className="text-[20px] font-semibold text-[#1d1d1f] mb-1.5 leading-tight truncate" title={project.name}>{project.name}</h3>
-                    <p className="text-[14px] text-[#86868b] mb-4">Admin: {project.admin.name}</p>
+                    <h3 className="text-[20px] font-semibold text-white mb-1.5 leading-tight truncate" title={project.name}>{project.name}</h3>
+                    <p className="text-[14px] text-zinc-400 mb-4">Admin: {project.admin.name}</p>
                     {project.description ? (
-                      <p className="text-[13px] text-gray-500 leading-relaxed line-clamp-3">{project.description}</p>
+                      <p className="text-[13px] text-zinc-500 leading-relaxed line-clamp-3">{project.description}</p>
                     ) : (
-                      <p className="text-[13px] text-gray-400 italic">No description</p>
+                      <p className="text-[13px] text-zinc-600 italic">No description</p>
                     )}
                  </div>
-                 <div className="mt-6 pt-4 border-t border-gray-50 flex items-center justify-between">
-                    <span className="text-[12px] font-medium text-gray-400">Created {format(parseISO(project.created_at), 'MMM d, yyyy')}</span>
+                 <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-between">
+                    <span className="text-[12px] font-medium text-zinc-500">Created {format(parseISO(project.created_at), 'MMM d, yyyy')}</span>
                  </div>
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <div className="text-center rounded-[24px] border border-dashed border-gray-200 p-16 bg-white shadow-[0_2px_10px_rgba(0,0,0,0.01)]">
-          <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Folder className="h-8 w-8 text-gray-400" />
+        <div className="text-center rounded-[24px] border border-dashed border-white/10 p-16 bg-[#18181b] shadow-[0_4px_24px_rgba(0,0,0,0.2)]">
+          <div className="w-16 h-16 bg-zinc-900 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Folder className="h-8 w-8 text-zinc-500" />
           </div>
-          <h3 className="text-[16px] font-semibold text-[#1d1d1f]">No projects found</h3>
-          <p className="mt-1 text-[14px] text-gray-500 max-w-sm mx-auto">Get started by creating a new project to organize your team's tasks.</p>
+          <h3 className="text-[16px] font-semibold text-white">No projects found</h3>
+          <p className="mt-1 text-[14px] text-zinc-400 max-w-sm mx-auto">Get started by creating a new project to organize your team's tasks.</p>
         </div>
       )}
     </div>

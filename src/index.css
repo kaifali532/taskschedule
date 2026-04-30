@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 body {
-  background-color: #fbfbfd;
-  color: #1d1d1f;
+  background-color: #09090b;
+  color: #fafafa;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -26,11 +26,11 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #e5e5ea;
+  background: #27272a;
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #d1d1d6;
+  background: #3f3f46;
 }
 
 /* Neon Hover Glow Effect (CodingNepal Style - Outside Card) */
@@ -39,7 +39,7 @@ body {
   z-index: 1;
   border-radius: 24px;
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  background-color: #ffffff;
+  background-color: #18181b;
 }
 
 .outer-card:hover {
@@ -52,7 +52,7 @@ body {
   left: -2px;
   right: -2px;
   bottom: -2px;
-  background: linear-gradient(45deg, #00f0ff, #8000ff, #ff007f, #00f0ff);
+  background: linear-gradient(45deg, #3b82f6, #8b5cf6, #ec4899, #3b82f6);
   background-size: 300%;
   border-radius: 26px;
   z-index: -1;
@@ -71,7 +71,7 @@ body {
 
 /* For bright light mode, keeping the blur-strong layer a bit softer on opacity */
 .outer-card:hover > span.glow-layer.blur-strong {
-  opacity: 0.55;
+  opacity: 0.6;
 }
 
 @keyframes bg-shift {
@@ -81,12 +81,12 @@ body {
 
 /* The actual content card */
 .card-internal {
-  background-color: #ffffff;
+  background-color: #18181b;
   border-radius: 24px;
   position: relative;
   z-index: 10;
   height: 100%;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  box-shadow: 0 4px 24px rgba(0,0,0,0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.2);
 }
 
