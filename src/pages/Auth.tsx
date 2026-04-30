@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, Mail, Lock, User, Briefcase } from 'lucide-react';
+import { Loader2, Mail, Lock, User, Briefcase, Github, Linkedin } from 'lucide-react';
 import { motion } from 'motion/react';
 
 export default function Auth() {
@@ -47,7 +47,7 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-[#09090b] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 font-sans overflow-hidden">
+    <div className="min-h-screen bg-[#09090b] flex flex-col font-sans overflow-hidden relative">
       
       {/* subtle layered background gradients for a premium feel */}
       <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none">
@@ -55,7 +55,8 @@ export default function Auth() {
          <div className="absolute top-1/4 right-1/4 w-[400px] h-[400px] rounded-full bg-purple-500/10 blur-[100px] opacity-40"></div>
       </div>
 
-      <div className="sm:mx-auto sm:w-full sm:max-w-[480px] flex flex-col items-center relative z-10">
+      <div className="flex-1 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 relative z-10 w-full">
+        <div className="sm:mx-auto sm:w-full sm:max-w-[480px] flex flex-col items-center">
         
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -77,7 +78,7 @@ export default function Auth() {
             transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
             className="text-[20px] sm:text-[28px] font-medium text-zinc-300 tracking-tight leading-tight mb-8"
           >
-            TaskSchedule
+            TeamTaskSchedule
           </motion.h2>
           
           <motion.div
@@ -222,7 +223,42 @@ export default function Auth() {
           </div>
           </div>
         </motion.div>
+        
+        </div>
       </div>
+
+      {/* Footer Enhancement */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1, delay: 0.8, ease: "easeOut" }}
+        className="w-full flex flex-col items-center justify-center z-10 pointer-events-none pb-8 pt-4 mt-auto"
+      >
+        <p className="text-zinc-500 text-[13px] font-medium tracking-wide mb-4">
+          This app was created by Md Kaif
+        </p>
+        <div className="flex items-center gap-6 pointer-events-auto">
+          <a
+             href="https://github.com/kaifali532"
+             target="_blank"
+             rel="noopener noreferrer"
+             className="text-zinc-400 hover:text-white transition-all duration-300 hover:scale-[1.15] hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.4)] animate-float"
+             aria-label="GitHub Profile"
+          >
+             <Github className="w-[22px] h-[22px]" />
+          </a>
+          <a
+             href="https://www.linkedin.com/in/md-kaif-8ab734264/"
+             target="_blank"
+             rel="noopener noreferrer"
+             className="text-zinc-400 hover:text-[#0a66c2] transition-all duration-300 hover:scale-[1.15] hover:drop-shadow-[0_0_8px_rgba(10,102,194,0.6)] animate-float-delayed"
+             aria-label="LinkedIn Profile"
+          >
+             <Linkedin className="w-[22px] h-[22px]" />
+          </a>
+        </div>
+      </motion.div>
+
     </div>
   );
 }

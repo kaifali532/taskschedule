@@ -23,7 +23,7 @@ function Navbar() {
           <div className="flex items-center gap-8">
             <Link to="/" className="flex flex-col justify-center group transition-all mr-4">
               <span className="font-medium text-[19px] tracking-tight leading-none text-white transition-opacity duration-300 group-hover:opacity-80">Ethara.Ai</span>
-              <span className="text-[11.5px] font-light text-zinc-400 tracking-wide leading-none mt-1">Team Task Manager</span>
+              <span className="text-[11.5px] font-light text-zinc-400 tracking-wide leading-none mt-1">TeamTaskSchedule</span>
             </Link>
             <nav className="hidden md:flex gap-6 mt-0.5">
               {navLinks.map((link) => (
@@ -101,7 +101,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       {/* Background Watermark */}
       <div className="fixed inset-0 z-0 pointer-events-none flex flex-col items-center justify-start pt-[20vh] select-none opacity-[0.02] mix-blend-screen">
         <h1 className="text-[12vw] sm:text-[140px] font-medium tracking-tight leading-none text-white">Ethara.Ai</h1>
-        <p className="text-[4vw] sm:text-[40px] font-light tracking-widest mt-2 sm:mt-4 text-zinc-400 uppercase">Team Task Manager</p>
+        <p className="text-[4vw] sm:text-[40px] font-light tracking-widest mt-2 sm:mt-4 text-zinc-400 uppercase">TeamTaskSchedule</p>
       </div>
 
       <div className="relative z-10 flex flex-col min-h-screen w-full">

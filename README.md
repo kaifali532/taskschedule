@@ -1,6 +1,6 @@
-# TaskSchedule
+# TeamTaskSchedule
 
-TaskSchedule is a Team Task Manager where users can create projects, assign tasks, and track progress with role-based access.
+TeamTaskSchedule is a TeamTaskSchedule application where users can create projects, assign tasks, and track progress with role-based access.
 
 ## Supabase Setup Instructions
 
