@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, CheckSquare } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import { Logo } from '../components/Logo';
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -48,14 +49,15 @@ export default function Auth() {
   return (
     <div className="min-h-screen bg-[#fbfbfd] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 font-sans animate-in">
       <div className="sm:mx-auto sm:w-full sm:max-w-[420px] flex flex-col items-center relative z-10">
-        <div className="w-12 h-12 bg-black rounded-[14px] flex items-center justify-center mb-6 shadow-[0_4px_10px_rgba(0,0,0,0.1)]">
-          <CheckSquare className="w-6 h-6 text-white" />
+        <div className="flex flex-col items-center justify-center mb-6">
+          <span className="font-medium text-[28px] tracking-tight leading-none text-[#1d1d1f]">Ethara.Ai</span>
+          <span className="text-[14px] font-light text-[#86868b] tracking-wide leading-none mt-1.5">Team Task Manager</span>
         </div>
-        <h2 className="text-center text-[28px] font-semibold tracking-tight text-[#1d1d1f] mb-2">
+        <h2 className="text-center text-[24px] font-semibold tracking-tight text-[#1d1d1f] mb-2">
           {isLogin ? 'Welcome back' : 'Create an account'}
         </h2>
         <p className="text-center text-[15px] text-[#86868b]">
-          {isLogin ? 'Sign in to access your workspace' : 'Join TaskSchedule to manage projects'}
+          {isLogin ? 'Sign in to access your workspace' : 'Join Ethara.Ai to manage projects'}
         </p>
       </div>
 

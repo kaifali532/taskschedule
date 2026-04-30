@@ -15,9 +15,12 @@ CREATE TABLE IF NOT EXISTS public.users (
 CREATE TABLE IF NOT EXISTS public.projects (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
+    description TEXT,
     admin_id UUID REFERENCES public.users(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+-- Migration to add description to existing projects
+ALTER TABLE public.projects ADD COLUMN IF NOT EXISTS description TEXT;
 
 -- 3. Create the Tasks table
 CREATE TABLE IF NOT EXISTS public.tasks (
@@ -37,9 +40,20 @@ ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.tasks ENABLE ROW LEVEL SECURITY;
 
 -- 5. Add Policies (Full Access for Development/Testing as requested)
+DROP POLICY IF EXISTS "Allow all on users" ON public.users;
+DROP POLICY IF EXISTS "Allow all on projects" ON public.projects;
+DROP POLICY IF EXISTS "Allow all on tasks" ON public.tasks;
+
+-- Explicitly add operations in case previous FOR ALL was broken or missing
 CREATE POLICY "Allow all on users" ON public.users FOR ALL USING (true);
 CREATE POLICY "Allow all on projects" ON public.projects FOR ALL USING (true);
 CREATE POLICY "Allow all on tasks" ON public.tasks FOR ALL USING (true);
+
+-- Adding explicit DELETE policy for projects and tasks to ensure delete works
+DROP POLICY IF EXISTS "Enable delete for users based on admin" ON public.projects;
+CREATE POLICY "Enable delete for users based on admin" ON public.projects FOR DELETE USING (true);
+DROP POLICY IF EXISTS "Enable delete for tasks" ON public.tasks;
+CREATE POLICY "Enable delete for tasks" ON public.tasks FOR DELETE USING (true);
 
 -- 6. Automate Profile Creation on Signup
 -- Ensures when a user signs up using Supabase Auth, they automatically get a row in public.users

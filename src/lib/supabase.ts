@@ -21,6 +21,7 @@ export interface UserProfile {
 export interface Project {
   id: string;
   name: string;
+  description?: string | null;
   admin_id: string;
   created_at: string;
 }

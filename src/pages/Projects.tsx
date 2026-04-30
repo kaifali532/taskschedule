@@ -11,6 +11,8 @@ export default function Projects() {
   
   const [isCreating, setIsCreating] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
+  const [newProjectDesc, setNewProjectDesc] = useState('');
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   useEffect(() => {
     if (profile) fetchProjects();
@@ -69,12 +71,14 @@ export default function Projects() {
       const { error } = await supabase.from('projects').insert([
         {
           name: newProjectName,
+          description: newProjectDesc.trim() || null,
           admin_id: profile?.id,
         }
       ]);
 
       if (error) throw error;
       setNewProjectName('');
+      setNewProjectDesc('');
       setIsCreating(false);
       fetchProjects();
     } catch (error) {
@@ -84,13 +88,29 @@ export default function Projects() {
 
   const handleDeleteProject = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    setDeleteError(null);
     if (!confirm('Are you sure? This will delete all tasks within the project.')) return;
     try {
+      console.log(`Attempting to delete project with ID: ${id}`);
+      
+      // Manually delete tasks first to handle missing ON DELETE CASCADE on older DBs
+      const { error: taskError } = await supabase.from('tasks').delete().eq('project_id', id);
+      if (taskError) {
+        console.error('Task delete error:', taskError);
+        throw new Error(`Failed to delete tasks: ${taskError.message}`);
+      }
+      
       const { error } = await supabase.from('projects').delete().eq('id', id);
-      if (error) throw error;
+      if (error) {
+        console.error('Project delete error:', error);
+        throw new Error(`Failed to delete project: ${error.message}`);
+      }
+      
+      console.log(`Successfully deleted project: ${id}`);
       fetchProjects();
-    } catch (error) {
-      console.error('Delete error:', error);
+    } catch (error: any) {
+      console.error('Delete error details:', error);
+      setDeleteError(error.message || 'Failed to delete project. Please try again.');
     }
   };
 
@@ -114,32 +134,54 @@ export default function Projects() {
         )}
       </div>
 
+      {deleteError && (
+        <div className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-100 mb-4 flex items-center justify-between">
+          <p className="text-[14px]">{deleteError}</p>
+          <button onClick={() => setDeleteError(null)} className="text-red-400 hover:text-red-700">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {isCreating && (
         <div className="bg-white p-6 md:p-8 rounded-[24px] border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] animate-in mb-4 relative">
            <button onClick={() => setIsCreating(false)} className="absolute top-6 right-6 text-gray-400 hover:text-black transition-colors">
               <X className="w-5 h-5"/>
            </button>
            <h3 className="text-xl font-semibold mb-6">Create New Project</h3>
-          <form onSubmit={handleCreateProject} className="flex flex-col sm:flex-row gap-4 sm:items-end">
-            <div className="flex-1">
-              <label htmlFor="projectName" className="block text-[13px] font-medium text-gray-500 mb-2 ml-1">Project Name <span className="text-red-500">*</span></label>
-              <input
-                type="text"
-                id="projectName"
-                required
-                value={newProjectName}
-                onChange={(e) => setNewProjectName(e.target.value)}
-                className="block w-full rounded-xl bg-gray-50 border border-gray-200 py-3.5 px-4 text-[#1d1d1f] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-[15px] transition-all placeholder:text-gray-400"
-                placeholder="E.g., Q1 Marketing Campaign"
-                autoFocus
-              />
+          <form onSubmit={handleCreateProject} className="flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1">
+                <label htmlFor="projectName" className="block text-[13px] font-medium text-gray-500 mb-2 ml-1">Project Name <span className="text-red-500">*</span></label>
+                <input
+                  type="text"
+                  id="projectName"
+                  required
+                  value={newProjectName}
+                  onChange={(e) => setNewProjectName(e.target.value)}
+                  className="block w-full rounded-xl bg-gray-50 border border-gray-200 py-3.5 px-4 text-[#1d1d1f] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-[15px] transition-all placeholder:text-gray-400"
+                  placeholder="E.g., Q1 Marketing Campaign"
+                  autoFocus
+                />
+              </div>
             </div>
-            <div className="flex gap-3 mt-4 sm:mt-0">
+            <div>
+              <label htmlFor="projectDesc" className="block text-[13px] font-medium text-gray-500 mb-2 ml-1">Project Description</label>
+              <textarea
+                id="projectDesc"
+                rows={3}
+                value={newProjectDesc}
+                onChange={(e) => setNewProjectDesc(e.target.value)}
+                className="block w-full rounded-xl bg-gray-50 border border-gray-200 py-3 px-4 text-[#1d1d1f] focus:outline-none focus:ring-2 focus:ring-blue-500 sm:text-[14px] transition-all placeholder:text-gray-400"
+                placeholder="Add a brief description of this project..."
+              ></textarea>
+            </div>
+            <div className="flex justify-end gap-3 mt-2">
                <button
                  type="submit"
                  className="inline-flex items-center justify-center rounded-xl bg-[#1d1d1f] px-6 py-3.5 text-[15px] font-semibold text-white shadow-sm hover:bg-black transition-all"
                >
-                 Create
+                 Create Project
                </button>
             </div>
           </form>
@@ -173,7 +215,12 @@ export default function Projects() {
                  </div>
                  <div>
                     <h3 className="text-[20px] font-semibold text-[#1d1d1f] mb-1.5 leading-tight truncate" title={project.name}>{project.name}</h3>
-                    <p className="text-[14px] text-[#86868b]">Admin: {project.admin.name}</p>
+                    <p className="text-[14px] text-[#86868b] mb-4">Admin: {project.admin.name}</p>
+                    {project.description ? (
+                      <p className="text-[13px] text-gray-500 leading-relaxed line-clamp-3">{project.description}</p>
+                    ) : (
+                      <p className="text-[13px] text-gray-400 italic">No description</p>
+                    )}
                  </div>
                  <div className="mt-6 pt-4 border-t border-gray-50 flex items-center justify-between">
                     <span className="text-[12px] font-medium text-gray-400">Created {format(parseISO(project.created_at), 'MMM d, yyyy')}</span>
