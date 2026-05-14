@@ -24,30 +24,61 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session?.user) {
-        fetchProfile(session.user.id);
-      } else {
-        setIsLoading(false);
+    let mounted = true;
+
+    const initializeAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.warn('Supabase auth error:', error.message);
+          // If refresh token is invalid, clear storage
+          if (error.message.includes('Refresh Token Not Found')) {
+            await supabase.auth.signOut();
+          }
+        }
+        
+        if (!mounted) return;
+
+        setSession(session);
+        if (session?.user) {
+          await fetchProfile(session.user.id);
+        } else {
+          setIsLoading(false);
+        }
+      } catch (err) {
+        console.warn('Auth initialization error:', err);
+        if (mounted) setIsLoading(false);
       }
-    });
+    };
+
+    initializeAuth();
 
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return;
+      
       setSession(session);
       if (session?.user) {
-        fetchProfile(session.user.id);
+        await fetchProfile(session.user.id);
       } else {
         setProfile(null);
         setIsLoading(false);
       }
+
+      if (event === 'SIGNED_OUT') {
+        // Clear any potentially corrupted state
+        setProfile(null);
+        setSession(null);
+      }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const fetchProfile = async (userId: string) => {
