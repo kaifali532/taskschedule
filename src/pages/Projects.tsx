@@ -21,28 +21,31 @@ export default function Projects() {
   const fetchProjects = async () => {
     try {
       setLoading(true);
-      const { data: projData, error: projErr } = await supabase
-        .from('projects')
-        .select('*')
-        .order('created_at', { ascending: false });
 
+      const isMember = profile?.role === 'Member';
+      const fetchParams = [
+        supabase.from('projects').select('*').order('created_at', { ascending: false }),
+        supabase.from('users').select('id, name')
+      ];
+
+      if (isMember) {
+        fetchParams.push(supabase.from('tasks').select('project_id').eq('assigned_to', profile.id));
+      }
+
+      const results = await Promise.all(fetchParams);
+      
+      const { data: projData, error: projErr } = results[0];
       if (projErr) throw projErr;
 
-      const { data: usersData, error: usrErr } = await supabase
-        .from('users')
-        .select('id, name');
-
+      const { data: usersData, error: usrErr } = results[1];
       if (usrErr) throw usrErr;
 
       let assignedProjectIds = new Set<string>();
-      if (profile?.role === 'Member') {
-        const { data: myTasks } = await supabase
-          .from('tasks')
-          .select('project_id')
-          .eq('assigned_to', profile.id);
-          
+      if (isMember) {
+        const { data: myTasks, error: myTasksErr } = results[2];
+        if (myTasksErr) throw myTasksErr;
         if (myTasks) {
-          myTasks.forEach(t => assignedProjectIds.add(t.project_id));
+          myTasks.forEach((t: any) => assignedProjectIds.add(t.project_id));
         }
       }
 
@@ -51,7 +54,7 @@ export default function Projects() {
         admin: usersData?.find(u => u.id === p.admin_id) || { name: 'Unknown' }
       }));
 
-      if (profile?.role === 'Member') {
+      if (isMember) {
         enriched = enriched.filter(p => assignedProjectIds.has(p.id));
       }
 
@@ -189,8 +192,17 @@ export default function Projects() {
       )}
 
       {loading ? (
-        <div className="flex justify-center p-16">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="outer-card h-[200px]">
+              <div className="card-internal p-6 flex flex-col">
+                <div className="w-12 h-12 rounded-[14px] bg-zinc-800 mb-4"></div>
+                <div className="h-5 w-3/4 bg-zinc-800 rounded-md mb-2"></div>
+                <div className="h-3 w-1/2 bg-zinc-800 rounded-md mb-4"></div>
+                <div className="h-10 w-full bg-zinc-800 rounded-md mt-auto"></div>
+              </div>
+            </div>
+          ))}
         </div>
       ) : projects.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

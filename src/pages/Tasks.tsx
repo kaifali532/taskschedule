@@ -25,22 +25,29 @@ export default function Tasks() {
   useEffect(() => {
     if (profile) {
       fetchTasks();
-      fetchProjects();
-      fetchUsers();
     }
   }, [profile]);
 
   const fetchTasks = async () => {
     try {
       setLoading(true);
-      const { data: tasksData, error: taskError } = await supabase.from('tasks').select('*').order('created_at', { ascending: false });
+
+      const [
+        { data: tasksData, error: taskError },
+        { data: projectsData, error: projError },
+        { data: usersData, error: usrError }
+      ] = await Promise.all([
+        supabase.from('tasks').select('*').order('created_at', { ascending: false }),
+        supabase.from('projects').select('*'),
+        supabase.from('users').select('*')
+      ]);
+
       if (taskError) throw taskError;
-
-      const { data: projectsData, error: projError } = await supabase.from('projects').select('*');
       if (projError) throw projError;
-
-      const { data: usersData, error: usrError } = await supabase.from('users').select('*');
       if (usrError) throw usrError;
+
+      setProjects(projectsData || []);
+      setUsers(usersData || []);
 
       let enriched = (tasksData || []).map(t => ({
         ...t,
@@ -155,8 +162,20 @@ export default function Tasks() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center p-16">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
+        <div className="bg-[#18181b] border border-white/5 shadow-[0_4px_24px_rgba(0,0,0,0.2)] rounded-[24px] overflow-hidden animate-pulse">
+          <div className="p-4 border-b border-white/10 flex gap-4">
+            <div className="h-4 w-24 bg-zinc-800 rounded"></div>
+            <div className="h-4 w-32 bg-zinc-800 rounded"></div>
+            <div className="h-4 w-20 bg-zinc-800 rounded"></div>
+          </div>
+          <div className="divide-y divide-white/5">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="p-4 flex justify-between">
+                <div className="h-4 w-1/3 bg-zinc-800 rounded"></div>
+                <div className="h-4 w-1/4 bg-zinc-800 rounded"></div>
+              </div>
+            ))}
+          </div>
         </div>
       ) : (
         <div className="bg-[#18181b] border border-white/5 shadow-[0_4px_24px_rgba(0,0,0,0.2)] rounded-[24px] overflow-hidden">

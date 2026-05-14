@@ -32,17 +32,51 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="flex h-full min-h-[400px] items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
+      <div className="flex flex-col w-full animate-pulse">
+        <div className="mb-8">
+          <div className="h-8 w-48 bg-zinc-800 rounded-md mb-2"></div>
+          <div className="h-4 w-64 bg-zinc-800 rounded-md"></div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-10">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="outer-card h-[120px]">
+              <div className="card-internal p-6">
+                <div className="h-3 w-20 bg-zinc-800 rounded-md mb-4"></div>
+                <div className="h-10 w-16 bg-zinc-800 rounded-md"></div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
 
-  const totalTasks = tasks.length;
-  const completedTasks = tasks.filter(t => t.status === 'Done').length;
-  const pendingTasks = tasks.filter(t => t.status !== 'Done').length;
-  const overdueTasks = tasks.filter(t => t.deadline && isPast(parseISO(t.deadline)) && t.status !== 'Done').length;
-  const completionPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+  const { totalTasks, completedTasks, pendingTasks, overdueTasks, completionPercentage } = React.useMemo(() => {
+    const total = tasks.length;
+    let completed = 0;
+    let pending = 0;
+    let overdue = 0;
+
+    for (const t of tasks) {
+      if (t.status === 'Done') {
+        completed++;
+      } else {
+        pending++;
+        if (t.deadline && isPast(parseISO(t.deadline))) {
+          overdue++;
+        }
+      }
+    }
+
+    const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+    return {
+      totalTasks: total,
+      completedTasks: completed,
+      pendingTasks: pending,
+      overdueTasks: overdue,
+      completionPercentage: percentage
+    };
+  }, [tasks]);
 
   return (
     <div className="flex flex-col w-full">
