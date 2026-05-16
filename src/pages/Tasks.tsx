@@ -3,7 +3,6 @@ import { supabase, Task, Project, UserProfile, TaskStatus } from '../lib/supabas
 import { useAuth } from '../context/AuthContext';
 import { Plus, Trash2, Edit, X } from 'lucide-react';
 import { format, parseISO, isPast } from 'date-fns';
-import { withDemoData } from '../lib/mockData';
 
 export default function Tasks() {
   const { profile } = useAuth();
@@ -26,6 +25,8 @@ export default function Tasks() {
   useEffect(() => {
     if (profile) {
       fetchTasks();
+    } else {
+      setLoading(false);
     }
   }, [profile]);
 
@@ -47,21 +48,17 @@ export default function Tasks() {
       if (projError) throw projError;
       if (usrError) throw usrError;
 
-      const fullProjects = withDemoData(projectsData, 'projects', profile?.id);
-      const fullUsers = withDemoData(usersData, 'users');
-      const fullTasks = withDemoData(tasksData, 'tasks', profile?.id);
+      setProjects(projectsData || []);
+      setUsers(usersData || []);
 
-      setProjects(fullProjects);
-      setUsers(fullUsers);
-
-      let enriched = fullTasks.map(t => ({
+      let enriched = (tasksData || []).map(t => ({
         ...t,
-        project: fullProjects.find((p: any) => p.id === t.project_id) || { name: 'Unknown' },
-        assignee: fullUsers.find((u: any) => u.id === t.assigned_to) || null
+        project: projectsData?.find(p => p.id === t.project_id) || { name: 'Unknown' },
+        assignee: usersData?.find(u => u.id === t.assigned_to) || null
       }));
 
       if (profile?.role === 'Member') {
-         enriched = enriched.filter((t: any) => t.assigned_to === profile.id);
+         enriched = enriched.filter(t => t.assigned_to === profile.id);
       }
 
       setTasks(enriched);
@@ -74,12 +71,12 @@ export default function Tasks() {
 
   const fetchProjects = async () => {
     const { data } = await supabase.from('projects').select('*');
-    if (data) setProjects(withDemoData(data, 'projects', profile?.id));
+    if (data) setProjects(data);
   };
 
   const fetchUsers = async () => {
     const { data } = await supabase.from('users').select('*');
-    if (data) setUsers(withDemoData(data, 'users'));
+    if (data) setUsers(data);
   };
 
   const handleOpenModal = (task?: Task) => {

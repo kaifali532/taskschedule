@@ -81,19 +81,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = async (userId: string, retries = 3) => {
     try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', userId)
-        .single();
+      let data = null;
+      let error = null;
+      
+      for (let i = 0; i < retries; i++) {
+        const res = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', userId)
+          .single();
+          
+        data = res.data;
+        error = res.error;
+        
+        if (!error && data) break;
+        
+        // Wait before retrying (gives DB triggers time to finish on signup)
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
       
       if (error) {
         console.error('Error fetching user profile:', error);
+        setProfile(null);
       } else {
         setProfile(data);
       }
+    } catch (err) {
+      console.error('Unexpected error in fetchProfile:', err);
+      setProfile(null);
     } finally {
       setIsLoading(false);
     }
