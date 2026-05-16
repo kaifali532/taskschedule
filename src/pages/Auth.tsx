@@ -40,7 +40,11 @@ export default function Auth() {
         navigate('/');
       }
     } catch (err: any) {
-      setError(err.message || 'An error occurred during authentication.');
+      let msg = err.message || 'An error occurred during authentication.';
+      if (msg.includes('Failed to fetch')) {
+        msg = 'Network error: Unable to reach the server. Please check your connection or Adblock settings.';
+      }
+      setError(msg);
     } finally {
       setLoading(false);
     }

@@ -32,8 +32,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (error) {
           console.warn('Supabase auth error:', error.message);
-          if (error.message.includes('Refresh Token Not Found')) {
-            await supabase.auth.signOut();
+          if (error.message?.includes('Refresh Token') || error.message?.includes('Failed to fetch')) {
+            // Force sign out and clear session if token is invalid or network error blocks validation
+            await supabase.auth.signOut().catch(() => {});
+            if (mounted) {
+               setSession(null);
+               setProfile(null);
+               setIsLoading(false);
+            }
+            return;
           }
         }
         
@@ -45,8 +52,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } else {
           setIsLoading(false);
         }
-      } catch (err) {
-        console.warn('Auth initialization error:', err);
+      } catch (err: any) {
+        console.warn('Auth initialization exception:', err);
+        if (err?.message?.includes('Refresh Token') || err?.message?.includes('Failed to fetch')) {
+            await supabase.auth.signOut().catch(() => {});
+            if (mounted) {
+               setSession(null);
+               setProfile(null);
+            }
+        }
         if (mounted) setIsLoading(false);
       }
     };

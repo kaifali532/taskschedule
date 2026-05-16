@@ -1,189 +1,216 @@
-import React, { useEffect, useState } from 'react';
-import { supabase, Task } from '../lib/supabase';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { isPast, parseISO } from 'date-fns';
-import { ArrowRight, CheckCircle2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { api } from '../services/api';
+import { Task, Project } from '../lib/supabase';
+import { isPast, parseISO, format } from 'date-fns';
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, LineChart, Line, CartesianGrid } from 'recharts';
 
 export default function Dashboard() {
   const { profile } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (profile) {
-      fetchTasks();
-    } else {
-      setLoading(false);
-    }
+    let mounted = true;
+    const fetchData = async () => {
+      if (!profile) {
+        if (mounted) setLoading(false);
+        return;
+      }
+      try {
+        setLoading(true);
+        setError(null);
+        const [tasksData, projectsData] = await Promise.all([
+          api.getTasks(profile.id, profile.role),
+          api.getProjects(profile.id, profile.role)
+        ]);
+        if (mounted) {
+          setTasks(tasksData || []);
+          setProjects(projectsData || []);
+        }
+      } catch (err: any) {
+        if (mounted) setError('Failed to load dashboard data.');
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+    fetchData();
+    return () => { mounted = false; };
   }, [profile]);
 
-  const fetchTasks = async () => {
-    try {
-      let query = supabase.from('tasks').select('*').order('created_at', { ascending: false });
-      if (profile?.role === 'Member') {
-         query = query.eq('assigned_to', profile.id);
-      }
-      const { data, error } = await query;
-      if (error) throw error;
-      setTasks(data || []);
-    } catch (error) {
-      console.error('Error fetching tasks:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="flex flex-col w-full animate-pulse">
-        <div className="mb-8">
-          <div className="h-8 w-48 bg-zinc-800 rounded-md mb-2"></div>
-          <div className="h-4 w-64 bg-zinc-800 rounded-md"></div>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-10">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="outer-card h-[120px]">
-              <div className="card-internal p-6">
-                <div className="h-3 w-20 bg-zinc-800 rounded-md mb-4"></div>
-                <div className="h-10 w-16 bg-zinc-800 rounded-md"></div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  const { totalTasks, completedTasks, pendingTasks, overdueTasks, completionPercentage } = React.useMemo(() => {
-    const total = tasks.length;
+  const stats = useMemo(() => {
+    const totalTasks = tasks.length;
     let completed = 0;
     let pending = 0;
     let overdue = 0;
 
-    for (const t of tasks) {
-      if (t.status === 'Done') {
-        completed++;
-      } else {
+    tasks.forEach(t => {
+      if (t.status === 'Done') completed++;
+      else {
         pending++;
-        if (t.deadline && isPast(parseISO(t.deadline))) {
-          overdue++;
-        }
+        if (t.deadline && isPast(parseISO(t.deadline))) overdue++;
       }
-    }
+    });
 
-    const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
-    return {
-      totalTasks: total,
-      completedTasks: completed,
-      pendingTasks: pending,
-      overdueTasks: overdue,
-      completionPercentage: percentage
-    };
+    return { totalTasks, completed, pending, overdue };
   }, [tasks]);
 
+  const tasksByStatus = useMemo(() => {
+    return [
+      { name: 'To Do', value: tasks.filter(t => t.status === 'To Do').length, color: '#64748b' },
+      { name: 'In Progress', value: tasks.filter(t => t.status === 'In Progress').length, color: '#f59e0b' },
+      { name: 'Done', value: tasks.filter(t => t.status === 'Done').length, color: '#10b981' }
+    ].filter(d => d.value > 0);
+  }, [tasks]);
+
+  const tasksByProject = useMemo(() => {
+    if (!projects.length) return [];
+    return projects.map(p => {
+      return {
+        name: p.name,
+        Tasks: tasks.filter(t => t.project_id === p.id).length
+      };
+    }).filter(p => p.Tasks > 0).slice(0, 5); // top 5
+  }, [tasks, projects]);
+
+  const tasksOverTime = useMemo(() => {
+    const counts: Record<string, number> = {};
+    tasks.forEach(t => {
+      if (t.created_at) {
+        const date = format(parseISO(t.created_at), 'MMM dd');
+        counts[date] = (counts[date] || 0) + 1;
+      }
+    });
+    return Object.keys(counts).sort().map(date => ({
+      date,
+      Tasks: counts[date]
+    })).slice(-14);
+  }, [tasks]);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col h-[50vh] items-center justify-center gap-4">
+        <div className="flex space-x-2">
+          <div className="w-2.5 h-2.5 bg-indigo-500 rounded-full animate-bounce"></div>
+          <div className="w-2.5 h-2.5 bg-purple-500 rounded-full animate-bounce delay-150"></div>
+          <div className="w-2.5 h-2.5 bg-indigo-500 rounded-full animate-bounce delay-300"></div>
+        </div>
+        <span className="text-zinc-400 font-medium text-sm">Loading...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl">
+        <h3 className="font-bold mb-1">Error loading data</h3>
+        <p className="text-sm opacity-90">{error}</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col w-full">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-white mb-1">Hi, {profile?.name?.split(' ')[0]}</h1>
-        <p className="text-[15px] text-zinc-400">Here's an overview of your tasks.</p>
+    <div className="space-y-6 animate-in fade-in duration-500">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight text-white mb-2">Dashboard</h1>
+        <p className="text-zinc-400">Welcome back, {profile?.name}</p>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-10">
-        <div className="outer-card">
-          <span className="glow-layer"></span>
-          <span className="glow-layer blur-strong"></span>
-          <div className="card-internal p-6">
-            <p className="text-zinc-400 text-[12px] font-semibold uppercase tracking-wider mb-2">Total Tasks</p>
-            <h3 className="text-[40px] leading-none font-bold tracking-tight text-white">{totalTasks}</h3>
-          </div>
-        </div>
-        
-        <div className="outer-card">
-          <span className="glow-layer"></span>
-          <span className="glow-layer blur-strong"></span>
-          <div className="card-internal p-6 flex flex-col justify-between">
-            <div>
-              <p className="text-zinc-400 text-[12px] font-semibold uppercase tracking-wider mb-2">Completed</p>
-              <h3 className="text-[40px] leading-none font-bold tracking-tight text-white">{completedTasks}</h3>
-            </div>
-            <div className="mt-4 w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
-              <div 
-                className="bg-indigo-500 h-full rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(99,102,241,0.5)]" 
-                style={{ width: `${completionPercentage}%` }}
-              ></div>
-            </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard title="Total Projects" value={projects.length} />
+        <StatCard title="Total Tasks" value={stats.totalTasks} />
+        <StatCard title="Completed" value={stats.completed} valueColor="text-emerald-400" />
+        <StatCard title="Pending" value={stats.pending} valueColor={stats.overdue > 0 ? "text-red-400" : "text-amber-400"} />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-[#18181b] border border-white/5 rounded-2xl p-6 shadow-lg">
+          <h2 className="text-lg font-semibold text-white mb-6">Task Status Breakdown</h2>
+          <div className="h-[300px] w-full">
+            {tasksByStatus.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={tasksByStatus}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {tasksByStatus.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#18181b', borderColor: 'rgba(255,255,255,0.1)' }}
+                    itemStyle={{ color: '#fff' }}
+                  />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex h-full items-center justify-center text-zinc-500">No tasks data available.</div>
+            )}
           </div>
         </div>
 
-        <div className="outer-card">
-          <span className="glow-layer"></span>
-          <span className="glow-layer blur-strong"></span>
-          <div className="card-internal p-6">
-            <p className="text-zinc-400 text-[12px] font-semibold uppercase tracking-wider mb-2">Pending</p>
-            <h3 className="text-[40px] leading-none font-bold tracking-tight text-white">{pendingTasks}</h3>
+        <div className="bg-[#18181b] border border-white/5 rounded-2xl p-6 shadow-lg">
+          <h2 className="text-lg font-semibold text-white mb-6">Tasks per Project</h2>
+          <div className="h-[300px] w-full">
+            {tasksByProject.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={tasksByProject}>
+                  <XAxis dataKey="name" stroke="#71717a" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#71717a" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
+                  <Tooltip 
+                    cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                    contentStyle={{ backgroundColor: '#18181b', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                    itemStyle={{ color: '#fff' }}
+                  />
+                  <Bar dataKey="Tasks" fill="#6366f1" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex h-full items-center justify-center text-zinc-500">No project tasks available.</div>
+            )}
           </div>
         </div>
 
-        <div className="outer-card">
-          <span className="glow-layer"></span>
-          <span className="glow-layer blur-strong"></span>
-          <div className={`card-internal p-6 ${overdueTasks > 0 ? 'bg-red-500/10 border-red-500/20' : ''}`}>
-            <p className={`text-[12px] font-semibold uppercase tracking-wider mb-2 ${overdueTasks > 0 ? 'text-red-400' : 'text-zinc-400'}`}>Overdue</p>
-            <h3 className="text-[40px] leading-none font-bold tracking-tight text-white">{overdueTasks}</h3>
+        <div className="bg-[#18181b] border border-white/5 rounded-2xl p-6 shadow-lg lg:col-span-2">
+          <h2 className="text-lg font-semibold text-white mb-6">Tasks Over Time (Created)</h2>
+          <div className="h-[300px] w-full">
+             {tasksOverTime.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={tasksOverTime}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" vertical={false} />
+                    <XAxis dataKey="date" stroke="#71717a" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis stroke="#71717a" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#18181b', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                      itemStyle={{ color: '#fff' }}
+                    />
+                    <Line type="monotone" dataKey="Tasks" stroke="#10b981" strokeWidth={3} dot={{ r: 4, fill: '#18181b', stroke: '#10b981', strokeWidth: 2 }} activeDot={{ r: 6, fill: '#10b981' }} />
+                  </LineChart>
+                </ResponsiveContainer>
+             ) : (
+                <div className="flex h-full items-center justify-center text-zinc-500">No activity history available.</div>
+             )}
           </div>
         </div>
       </div>
+    </div>
+  );
+}
 
-      <div className="flex items-center justify-between mb-4 px-1">
-        <h2 className="text-[20px] font-semibold tracking-tight text-white">Recent Activity</h2>
-        <Link to="/tasks" className="text-[14px] font-medium text-indigo-400 hover:text-indigo-300 flex items-center gap-1 transition-colors">
-          View all <ArrowRight className="w-4 h-4 ml-0.5" />
-        </Link>
-      </div>
-      
-      <div className="bg-[#18181b] border border-white/5 rounded-[24px] shadow-[0_4px_24px_rgba(0,0,0,0.2)] overflow-hidden">
-        {tasks.length > 0 ? (
-          <div className="divide-y divide-white/5">
-            {tasks.slice(0, 5).map(task => (
-              <div key={task.id} className="p-5 sm:px-6 hover:bg-white/5 transition-colors flex items-center justify-between group">
-                <div className="flex items-center gap-4">
-                  <div className="mt-0.5">
-                    {task.status === 'Done' ? (
-                       <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                    ) : (
-                       <div className={`w-5 h-5 rounded-full border-2 ${task.status === 'In Progress' ? 'border-amber-400 border-t-amber-200' : 'border-zinc-500'}`}></div>
-                    )}
-                  </div>
-                  <div>
-                    <h4 className={`text-[15px] font-medium transition-colors ${task.status === 'Done' ? 'text-zinc-500 line-through' : 'text-zinc-100'}`}>
-                      {task.title}
-                    </h4>
-                    {task.description && (
-                      <p className="text-[13px] text-zinc-400 mt-0.5 line-clamp-1 max-w-sm sm:max-w-md">{task.description}</p>
-                    )}
-                  </div>
-                </div>
-                <div className="hidden sm:block">
-                  <span className={`inline-flex px-2.5 py-1 text-[11px] font-semibold rounded-full border ${
-                    task.status === 'Done' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 
-                    task.status === 'In Progress' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 
-                    'bg-slate-500/10 text-slate-300 border-slate-500/20'
-                  }`}>
-                    {task.status}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="p-12 text-center">
-            <p className="text-[15px] text-zinc-400 font-medium">No tasks yet.</p>
-            <p className="text-[14px] text-zinc-500 mt-1">Get started by creating a new task.</p>
-          </div>
-        )}
-      </div>
+function StatCard({ title, value, valueColor = "text-white" }: { title: string, value: number, valueColor?: string }) {
+  return (
+    <div className="bg-[#18181b] border border-white/5 rounded-2xl p-6 shadow-lg shadow-black/20">
+      <h3 className="text-zinc-400 text-sm font-medium mb-3">{title}</h3>
+      <p className={`text-3xl font-bold tracking-tight ${valueColor}`}>{value}</p>
     </div>
   );
 }
