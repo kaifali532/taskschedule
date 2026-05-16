@@ -14,6 +14,8 @@ export default function Dashboard() {
 
   useEffect(() => {
     let mounted = true;
+    let fallbackTimeout: NodeJS.Timeout;
+
     const fetchData = async () => {
       if (!profile) {
         if (mounted) setLoading(false);
@@ -22,23 +24,41 @@ export default function Dashboard() {
       try {
         setLoading(true);
         setError(null);
+        
+        fallbackTimeout = setTimeout(() => {
+          if (mounted && loading) {
+            setLoading(false);
+            console.error("Dashboard data fetch timeout");
+          }
+        }, 5000);
+
+        console.log("Fetching dashboard data for", profile.id);
         const [tasksData, projectsData] = await Promise.all([
           api.getTasks(profile.id, profile.role),
           api.getProjects(profile.id, profile.role)
         ]);
+        console.log("Finished fetching dashboard data");
+
         if (mounted) {
           setTasks(tasksData || []);
           setProjects(projectsData || []);
         }
       } catch (err: any) {
+        console.error("Dashboard fetch error:", err);
         if (mounted) setError('Failed to load dashboard data.');
       } finally {
+        clearTimeout(fallbackTimeout);
         if (mounted) setLoading(false);
       }
     };
+    
     fetchData();
-    return () => { mounted = false; };
-  }, [profile]);
+    
+    return () => { 
+      mounted = false; 
+      clearTimeout(fallbackTimeout);
+    };
+  }, [profile?.id, profile?.role]);
 
   const stats = useMemo(() => {
     const totalTasks = tasks.length;

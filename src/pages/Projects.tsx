@@ -16,30 +16,52 @@ export default function Projects() {
   const [newProjectName, setNewProjectName] = useState('');
   const [newProjectDesc, setNewProjectDesc] = useState('');
 
-  const fetchData = async () => {
-    if (!profile) {
-      setLoading(false);
+  const fetchData = async (currentProfile: UserProfile | null, isMounted: () => boolean) => {
+    if (!currentProfile) {
+      if (isMounted()) setLoading(false);
       return;
     }
+    
+    let fallbackTimeout: NodeJS.Timeout | undefined;
+    
     try {
-      setLoading(true);
-      setError(null);
+      if (isMounted()) {
+        setLoading(true);
+        setError(null);
+      }
+      
+      fallbackTimeout = setTimeout(() => {
+        if (isMounted() && loading) {
+          setLoading(false);
+        }
+      }, 5000);
+
       const [projData, usersData] = await Promise.all([
-        api.getProjects(profile.id, profile.role),
+        api.getProjects(currentProfile.id, currentProfile.role),
         api.getUsers()
       ]);
-      setProjects(projData || []);
-      setUsers(usersData || []);
+      
+      if (isMounted()) {
+        setProjects(projData || []);
+        setUsers(usersData || []);
+      }
     } catch (err: any) {
-      setError('Failed to load projects.');
+      console.error("fetchData projects error", err);
+      if (isMounted()) setError('Failed to load projects.');
     } finally {
-      setLoading(false);
+      clearTimeout(fallbackTimeout);
+      if (isMounted()) setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchData();
-  }, [profile]);
+    let mounted = true;
+    const isMounted = () => mounted;
+    
+    fetchData(profile, isMounted);
+    
+    return () => { mounted = false; };
+  }, [profile?.id, profile?.role]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,7 +75,7 @@ export default function Projects() {
       setIsCreating(false);
       setNewProjectName('');
       setNewProjectDesc('');
-      fetchData();
+      fetchData(profile, () => true);
     } catch (err) {
       console.error('Failed to create project:', err);
     }
@@ -64,7 +86,7 @@ export default function Projects() {
     if (!confirm('Are you sure you want to delete this project?')) return;
     try {
       await api.deleteProject(id);
-      fetchData();
+      fetchData(profile, () => true);
     } catch (err) {
       console.error('Failed to delete project:', err);
     }

@@ -26,32 +26,54 @@ export default function Tasks() {
 
   const [statusFilter, setStatusFilter] = useState<string>('All');
 
-  const fetchData = async () => {
-    if (!profile) {
-      setLoading(false);
+  const fetchData = async (currentProfile: UserProfile | null, isMounted: () => boolean) => {
+    if (!currentProfile) {
+      if (isMounted()) setLoading(false);
       return;
     }
+    
+    let fallbackTimeout: NodeJS.Timeout | undefined;
+
     try {
-      setLoading(true);
-      setError(null);
+      if (isMounted()) {
+        setLoading(true);
+        setError(null);
+      }
+      
+      fallbackTimeout = setTimeout(() => {
+        if (isMounted() && loading) {
+          setLoading(false);
+        }
+      }, 5000);
+
       const [tasksData, projectsData, usersData] = await Promise.all([
-        api.getTasks(profile.id, profile.role),
-        api.getProjects(profile.id, profile.role),
+        api.getTasks(currentProfile.id, currentProfile.role),
+        api.getProjects(currentProfile.id, currentProfile.role),
         api.getUsers()
       ]);
-      setTasks(tasksData || []);
-      setProjects(projectsData || []);
-      setUsers(usersData || []);
+      
+      if (isMounted()) {
+        setTasks(tasksData || []);
+        setProjects(projectsData || []);
+        setUsers(usersData || []);
+      }
     } catch (err: any) {
-      setError('Failed to load tasks.');
+      console.error("fetchData error in Tasks:", err);
+      if (isMounted()) setError('Failed to load tasks.');
     } finally {
-      setLoading(false);
+      clearTimeout(fallbackTimeout);
+      if (isMounted()) setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchData();
-  }, [profile]);
+    let mounted = true;
+    const isMounted = () => mounted;
+    
+    fetchData(profile, isMounted);
+    
+    return () => { mounted = false; };
+  }, [profile?.id, profile?.role]);
 
   const handleOpenModal = (task?: Task) => {
     if (task) {
@@ -95,7 +117,7 @@ export default function Tasks() {
         await api.createTask(payload);
       }
       setIsModalOpen(false);
-      fetchData();
+      fetchData(profile, () => true);
     } catch (err) {
       console.error('Error saving task:', err);
     }
@@ -105,7 +127,7 @@ export default function Tasks() {
     if (!confirm('Are you sure you want to delete this task?')) return;
     try {
       await api.deleteTask(id);
-      fetchData();
+      fetchData(profile, () => true);
     } catch (err) {
       console.error('Error deleting task:', err);
     }
