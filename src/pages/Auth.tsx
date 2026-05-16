@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { Loader2, Mail, Lock, User, Briefcase, Github, Linkedin } from 'lucide-react';
 import { motion } from 'motion/react';
 
+import Hero3D from '../components/Hero3D';
+
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('demo@ethara.ai');
@@ -62,7 +64,7 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-[#09090b] flex flex-col font-sans overflow-hidden relative">
+    <div className="min-h-screen bg-gradient-to-b from-[#050816] via-[#0B1120] to-[#050816] flex flex-col font-sans overflow-hidden relative">
       
       {/* subtle layered background gradients for a premium feel */}
       <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none">
@@ -73,48 +75,40 @@ export default function Auth() {
       <div className="flex-1 flex flex-col relative z-10 w-full">
         
         {/* === HERO SECTION === */}
-        <div className="w-full min-h-[85vh] flex flex-col items-center justify-center px-6 py-20 max-w-6xl mx-auto">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="flex flex-col items-center justify-center text-center w-full"
-          >
-            <motion.h1 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-              className="font-bold text-[64px] sm:text-[96px] lg:text-[112px] tracking-tighter leading-none text-white mb-4 sm:mb-6"
+        <div className="relative w-full h-screen overflow-hidden flex flex-col items-center justify-center">
+            <Hero3D />
+
+            <div className="absolute bottom-0 w-full h-40 bg-gradient-to-b from-transparent to-[#050816] z-10 pointer-events-none" />
+
+            <motion.div 
+               initial={{ opacity: 0 }} 
+               animate={{ opacity: 1 }} 
+               transition={{ delay: 2, duration: 1 }}
+               className="absolute bottom-8 z-30 animate-bounce"
             >
-              Ethara.Ai
-            </motion.h1>
-            <motion.h2 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              className="text-[24px] sm:text-[36px] lg:text-[40px] font-medium text-zinc-300 tracking-tight leading-tight mb-12"
-            >
-              TeamTaskSchedule
-            </motion.h2>
-            
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, delay: 0.4, ease: "easeOut" }}
-              className="mt-2"
-            >
-              <h3 className="text-[28px] sm:text-[40px] font-medium text-zinc-100 mb-4 sm:mb-6 tracking-tight max-w-3xl mx-auto leading-tight">
-                Organize Your Work. Simplify Your Life.
-              </h3>
-              <p className="text-[16px] sm:text-[20px] text-zinc-400 font-light max-w-2xl mx-auto leading-relaxed px-4">
-                Manage projects, assign tasks, and track progress effortlessly.
-              </p>
+               <div className="w-6 h-10 rounded-full border-2 border-white/20 flex justify-center p-2">
+                  <div className="w-1 h-2 bg-white/50 rounded-full animate-pulse"></div>
+               </div>
             </motion.div>
+        </div>
+
+        {/* === AI DASHBOARD HERO TEXT === */}
+        <div className="w-full flex-none flex flex-col items-center justify-center relative z-20 px-4 pt-12 pb-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="max-w-3xl text-center"
+          >
+            <h2 className="text-3xl font-semibold text-white">Intelligent Task Orchestration</h2>
+            <p className="text-lg text-white/60 mt-2">Transforming how teams plan, track, and execute with AI precision.</p>
+            <p className="italic text-white/50 mt-4 tracking-wide">"Where intelligence meets execution — Ethara.AI powers the future of teamwork."</p>
           </motion.div>
         </div>
 
         {/* === AUTH FORM SECTION === */}
-        <div className="w-full flex-none flex flex-col justify-center py-20 px-4 sm:px-6 lg:px-8 bg-black/20 backdrop-blur-sm border-t border-white/5">
+        <div className="w-full flex-none flex flex-col justify-center py-16 px-4 sm:px-6 lg:px-8 bg-transparent relative z-20">
           <div className="sm:mx-auto sm:w-full sm:max-w-[480px] flex flex-col items-center">
             <motion.div 
               initial={{ opacity: 0, y: 30 }}
