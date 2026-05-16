@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { supabase, Task, Project, UserProfile, TaskStatus } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
-import { Plus, Trash2, Edit, X } from 'lucide-react';
+import { Plus, Trash2, Edit, X, Filter } from 'lucide-react';
 import { format, parseISO, isPast } from 'date-fns';
+import { demoTasks, demoProjects, demoUsers } from '../lib/demoData';
 
 export default function Tasks() {
   const { profile } = useAuth();
@@ -11,6 +12,7 @@ export default function Tasks() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState<TaskStatus | 'All'>('All');
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -42,11 +44,19 @@ export default function Tasks() {
       const { data: usersData, error: usrError } = await supabase.from('users').select('*');
       if (usrError) throw usrError;
 
+      const pData = projectsData && projectsData.length > 0 ? projectsData : demoProjects;
+      const uData = usersData && usersData.length > 0 ? usersData : demoUsers;
+
       let enriched = (tasksData || []).map(t => ({
         ...t,
-        project: projectsData?.find(p => p.id === t.project_id) || { name: 'Unknown' },
-        assignee: usersData?.find(u => u.id === t.assigned_to) || null
+        project: pData.find(p => p.id === t.project_id) || { name: 'Unknown' },
+        assignee: uData.find(u => u.id === t.assigned_to) || null
       }));
+
+      // Fallback
+      if (enriched.length === 0) {
+         enriched = demoTasks as any;
+      }
 
       if (profile?.role === 'Member') {
          enriched = enriched.filter(t => t.assigned_to === profile.id);
@@ -55,19 +65,20 @@ export default function Tasks() {
       setTasks(enriched);
     } catch (error) {
       console.error('Error fetching tasks:', error);
+      setTasks(demoTasks as any);
     } finally {
-      setLoading(false);
+       setLoading(false);
     }
   };
 
   const fetchProjects = async () => {
     const { data } = await supabase.from('projects').select('*');
-    if (data) setProjects(data);
+    setProjects(data && data.length > 0 ? data : demoProjects);
   };
 
   const fetchUsers = async () => {
     const { data } = await supabase.from('users').select('*');
-    if (data) setUsers(data);
+    setUsers(data && data.length > 0 ? data : demoUsers);
   };
 
   const handleOpenModal = (task?: Task) => {
@@ -107,6 +118,11 @@ export default function Tasks() {
       }
 
       if (editingTask) {
+        if (editingTask.id.startsWith('t')) {
+           // It's a demo task, don't update DB
+           setIsModalOpen(false);
+           return;
+        }
         if (profile?.role === 'Admin') {
           await supabase.from('tasks').update(payload).eq('id', editingTask.id);
         } else {
@@ -126,6 +142,10 @@ export default function Tasks() {
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this task?')) return;
     try {
+      if (id.startsWith('t')) {
+         setTasks(tasks.filter(t => t.id !== id));
+         return;
+      }
       await supabase.from('tasks').delete().eq('id', id);
       fetchTasks();
     } catch (error) {
@@ -136,34 +156,55 @@ export default function Tasks() {
   const isAdmin = profile?.role === 'Admin';
   const getInitials = (name: string) => name ? name.substring(0, 2).toUpperCase() : 'U';
 
+  const filteredTasks = statusFilter === 'All' ? tasks : tasks.filter(t => t.status === statusFilter);
+
   return (
     <div className="flex flex-col space-y-8">
-      <div className="flex items-center justify-between px-1">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between px-1 gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-white mb-1">Tasks</h1>
           <p className="text-[15px] text-zinc-400">View, update, and manage action items.</p>
         </div>
-        {isAdmin && (
-          <button
-            onClick={() => handleOpenModal()}
-            className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 px-5 py-2.5 text-[14px] font-medium text-white hover:from-indigo-500 hover:to-purple-500 hover:-translate-y-0.5 hover:shadow-[0_4px_14px_0_rgba(79,70,229,0.39)] transition-all duration-300"
-          >
-            <Plus className="mr-1.5 h-4 w-4" />
-            New Task
-          </button>
-        )}
+        <div className="flex items-center gap-3">
+          <div className="relative">
+             <Filter className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+             <select 
+                value={statusFilter} 
+                onChange={e => setStatusFilter(e.target.value as any)}
+                className="pl-9 pr-8 py-2 rounded-full bg-zinc-900 border border-white/10 text-white text-[13px] font-medium appearance-none outline-none focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer"
+             >
+                <option value="All">All Status</option>
+                <option value="To Do">To Do</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Done">Done</option>
+             </select>
+          </div>
+          {isAdmin && (
+            <button
+              onClick={() => handleOpenModal()}
+              className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 px-5 py-2.5 text-[14px] font-medium text-white hover:from-indigo-500 hover:to-purple-500 hover:-translate-y-0.5 hover:shadow-[0_4px_14px_0_rgba(79,70,229,0.39)] transition-all duration-300"
+            >
+              <Plus className="mr-1.5 h-4 w-4" />
+              New Task
+            </button>
+          )}
+        </div>
       </div>
 
       {loading ? (
-        <div className="flex justify-center p-16">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
+        <div className="bg-[#18181b] border border-white/5 shadow-[0_4px_24px_rgba(0,0,0,0.2)] rounded-[24px] p-6">
+          <div className="space-y-4">
+             {[1, 2, 3, 4, 5, 6, 7].map(i => (
+                <div key={i} className="h-16 bg-white/5 animate-pulse rounded-xl w-full"></div>
+             ))}
+          </div>
         </div>
       ) : (
         <div className="bg-[#18181b] border border-white/5 shadow-[0_4px_24px_rgba(0,0,0,0.2)] rounded-[24px] overflow-hidden">
           
           <div className="overflow-x-auto">
-            {tasks.length === 0 ? (
-               <div className="p-16 text-center text-[15px] text-zinc-500 font-medium">No tasks found.</div>
+            {filteredTasks.length === 0 ? (
+               <div className="p-16 text-center text-[15px] text-zinc-500 font-medium">No tasks found matching current filters.</div>
             ) : (
               <table className="w-full text-left min-w-[800px]">
                 <thead className="bg-zinc-900/50 border-b border-white/10 text-zinc-500 uppercase text-[11px] font-semibold tracking-wider">
@@ -177,23 +218,38 @@ export default function Tasks() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5 text-[14px]">
-                  {tasks.map((task) => (
+                  {filteredTasks.map((task) => {
+                     const isOverdue = task.deadline && isPast(parseISO(task.deadline)) && task.status !== 'Done';
+                     
+                     return (
                     <tr key={task.id} className="hover:bg-white/5 transition-colors group">
                       <td className="px-6 py-4">
                         <div className={`font-medium ${task.status === 'Done' ? 'text-zinc-500 line-through' : 'text-zinc-100'}`}>{task.title}</div>
                         {task.description && <div className="text-[13px] text-zinc-500 mt-0.5 max-w-sm truncate">{task.description}</div>}
                       </td>
-                      <td className="px-6 py-4 text-zinc-400">{task.project.name}</td>
+                      <td className="px-6 py-4 text-zinc-400">
+                         <span className="bg-white/5 px-2.5 py-1 rounded-md text-[12px]">{task.project.name}</span>
+                      </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center space-x-2">
-                          <div className="w-[26px] h-[26px] rounded-full bg-zinc-800 border border-white/10 flex items-center justify-center text-[10px] font-semibold text-zinc-400">
-                            {task.assignee ? getInitials(task.assignee.name) : '-'}
-                          </div>
-                          <span className="text-zinc-300">{task.assignee?.name || 'Unassigned'}</span>
+                           {task.assignee ? (
+                              <div className="flex items-center gap-2">
+                                 <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center text-[10px] font-bold text-indigo-300 shadow-sm">
+                                   {task.assignee ? getInitials(task.assignee.name) : '-'}
+                                 </div>
+                                 <span className="text-zinc-300 font-medium text-[13px]">{task.assignee.name}</span>
+                              </div>
+                           ) : (
+                              <span className="text-zinc-500 italic text-[13px]">Unassigned</span>
+                           )}
                         </div>
                       </td>
-                      <td className={`px-6 py-4 text-[13px] ${task.deadline && isPast(parseISO(task.deadline)) && task.status !== 'Done' ? 'text-red-400 font-medium' : 'text-zinc-500'}`}>
-                         {task.deadline ? format(parseISO(task.deadline), 'MMM d, yyyy') : '-'}
+                      <td className={`px-6 py-4 text-[13px] ${isOverdue ? 'text-red-400 font-medium' : 'text-zinc-500'}`}>
+                         {task.deadline ? (
+                            <span className={isOverdue ? 'bg-red-500/10 px-2 py-0.5 rounded-md border border-red-500/20' : ''}>
+                               {format(parseISO(task.deadline), 'MMM d, yyyy')}
+                            </span>
+                         ) : '-'}
                       </td>
                       <td className="px-6 py-4">
                         {task.status === 'Done' ? (
@@ -217,7 +273,7 @@ export default function Tasks() {
                          </div>
                       </td>
                     </tr>
-                  ))}
+                  )})}
                 </tbody>
               </table>
             )}

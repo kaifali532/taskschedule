@@ -3,6 +3,7 @@ import { supabase, Project, UserProfile } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { Plus, Trash2, Folder, X } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
+import { demoProjects } from '../lib/demoData';
 
 export default function Projects() {
   const { profile } = useAuth();
@@ -34,7 +35,12 @@ export default function Projects() {
 
       if (usrErr) throw usrErr;
 
-      let assignedProjectIds = new Set<string>();
+      let enriched = (projData || []).map(p => ({
+        ...p,
+        admin: usersData?.find(u => u.id === p.admin_id) || { name: 'Unknown' }
+      }));
+
+      // Filter logic
       if (profile?.role === 'Member') {
         const { data: myTasks } = await supabase
           .from('tasks')
@@ -42,22 +48,17 @@ export default function Projects() {
           .eq('assigned_to', profile.id);
           
         if (myTasks) {
-          myTasks.forEach(t => assignedProjectIds.add(t.project_id));
+          const assignedProjectIds = new Set(myTasks.map(t => t.project_id));
+          enriched = enriched.filter(p => assignedProjectIds.has(p.id));
+        } else {
+          enriched = [];
         }
       }
 
-      let enriched = (projData || []).map(p => ({
-        ...p,
-        admin: usersData?.find(u => u.id === p.admin_id) || { name: 'Unknown' }
-      }));
-
-      if (profile?.role === 'Member') {
-        enriched = enriched.filter(p => assignedProjectIds.has(p.id));
-      }
-
-      setProjects(enriched);
+      setProjects(enriched.length > 0 ? enriched : demoProjects);
     } catch (error) {
       console.error('Error fetching projects:', error);
+      setProjects(demoProjects);
     } finally {
       setLoading(false);
     }
@@ -91,22 +92,20 @@ export default function Projects() {
     setDeleteError(null);
     if (!confirm('Are you sure? This will delete all tasks within the project.')) return;
     try {
-      console.log(`Attempting to delete project with ID: ${id}`);
-      
-      // Manually delete tasks first to handle missing ON DELETE CASCADE on older DBs
+      // Don't try to delete demo projects on backend
+      if (id.startsWith('p')) {
+         setProjects(projects.filter(p => p.id !== id));
+         return;
+      }
       const { error: taskError } = await supabase.from('tasks').delete().eq('project_id', id);
       if (taskError) {
-        console.error('Task delete error:', taskError);
         throw new Error(`Failed to delete tasks: ${taskError.message}`);
       }
       
       const { error } = await supabase.from('projects').delete().eq('id', id);
       if (error) {
-        console.error('Project delete error:', error);
         throw new Error(`Failed to delete project: ${error.message}`);
       }
-      
-      console.log(`Successfully deleted project: ${id}`);
       fetchProjects();
     } catch (error: any) {
       console.error('Delete error details:', error);
@@ -189,8 +188,10 @@ export default function Projects() {
       )}
 
       {loading ? (
-        <div className="flex justify-center p-16">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="h-48 bg-white/5 animate-pulse rounded-[24px]"></div>
+          ))}
         </div>
       ) : projects.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -198,9 +199,9 @@ export default function Projects() {
             <div key={project.id} className="outer-card group">
               <span className="glow-layer"></span>
               <span className="glow-layer blur-strong"></span>
-              <div className="card-internal flex flex-col p-6 overflow-hidden">
-                 <div className="flex items-start justify-between mb-8 flex-1">
-                    <div className="w-12 h-12 rounded-[14px] bg-indigo-500/10 text-indigo-400 flex items-center justify-center mb-4">
+              <div className="card-internal flex flex-col p-6 overflow-hidden h-full">
+                 <div className="flex items-start justify-between mb-8">
+                    <div className="w-12 h-12 rounded-[14px] bg-indigo-500/10 text-indigo-400 flex items-center justify-center mb-4 border border-indigo-500/20">
                        <Folder className="w-6 h-6" />
                     </div>
                     {isAdmin && (
@@ -213,17 +214,24 @@ export default function Projects() {
                       </button>
                     )}
                  </div>
-                 <div>
+                 <div className="flex-1">
                     <h3 className="text-[20px] font-semibold text-white mb-1.5 leading-tight truncate" title={project.name}>{project.name}</h3>
-                    <p className="text-[14px] text-zinc-400 mb-4">Admin: {project.admin.name}</p>
+                    <div className="flex items-center gap-2 mb-4">
+                       <div className="w-5 h-5 rounded-full bg-zinc-800 border border-white/10 flex items-center justify-center text-[9px] font-bold text-zinc-400">
+                           {project.admin.name.substring(0, 2).toUpperCase()}
+                       </div>
+                       <p className="text-[13px] text-zinc-400">Admin: <span className="text-zinc-300">{project.admin.name}</span></p>
+                    </div>
                     {project.description ? (
-                      <p className="text-[13px] text-zinc-500 leading-relaxed line-clamp-3">{project.description}</p>
+                      <p className="text-[13px] text-zinc-500 leading-relaxed line-clamp-2">{project.description}</p>
                     ) : (
                       <p className="text-[13px] text-zinc-600 italic">No description</p>
                     )}
                  </div>
                  <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-between">
-                    <span className="text-[12px] font-medium text-zinc-500">Created {format(parseISO(project.created_at), 'MMM d, yyyy')}</span>
+                    <span className="text-[12px] font-medium text-zinc-500">
+                       {project.created_at ? `Created ${format(parseISO(project.created_at), 'MMM d, yyyy')}` : ''}
+                    </span>
                  </div>
               </div>
             </div>

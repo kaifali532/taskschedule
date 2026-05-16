@@ -6,8 +6,8 @@ import { motion } from 'motion/react';
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('demo@ethara.ai');
+  const [password, setPassword] = useState('Demo@123');
   const [name, setName] = useState('');
   const [role, setRole] = useState<'Member' | 'Admin'>('Member');
   const [loading, setLoading] = useState(false);
@@ -22,7 +22,22 @@ export default function Auth() {
 
     try {
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        let { error } = await supabase.auth.signInWithPassword({ email, password });
+        
+        // Auto sign up demo user if it doesn't exist
+        if (error && email === 'demo@ethara.ai' && error.message.includes('Invalid login credentials')) {
+           const { error: signUpErr } = await supabase.auth.signUp({
+              email,
+              password,
+              options: { data: { name: 'Demo Admin User', role: 'Admin' } }
+           });
+           if (!signUpErr) {
+              // Sign in again if signup was successful
+              const { error: retryErr } = await supabase.auth.signInWithPassword({ email, password });
+              error = retryErr;
+           }
+        }
+        
         if (error) throw error;
         navigate('/');
       } else {
@@ -203,7 +218,7 @@ export default function Auth() {
                 </div>
               </div>
 
-              <div className="pt-2">
+              <div className="pt-2 space-y-3">
                 <button
                   type="submit"
                   disabled={loading}
@@ -212,6 +227,34 @@ export default function Auth() {
                   {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
                   {isLogin ? 'Sign In' : 'Create Account'}
                 </button>
+                
+                {isLogin && (
+                   <>
+                      <div className="relative flex items-center py-2">
+                        <div className="flex-grow border-t border-white/10"></div>
+                        <span className="flex-shrink-0 mx-4 text-zinc-500 text-xs uppercase tracking-wider">or</span>
+                        <div className="flex-grow border-t border-white/10"></div>
+                      </div>
+                      
+                      <div className="text-center mb-2">
+                         <p className="text-xs text-indigo-300">Use demo account to explore the app instantly</p>
+                      </div>
+                      
+                      <button
+                        type="button"
+                        disabled={loading}
+                        onClick={(e) => {
+                           setEmail('demo@ethara.ai');
+                           setPassword('Demo@123');
+                           handleAuth(e);
+                        }}
+                        className="w-full flex justify-center py-3.5 px-4 rounded-full text-[15px] font-semibold text-white bg-zinc-800 hover:bg-zinc-700 border border-white/10 focus:outline-none focus:ring-4 focus:ring-zinc-600/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform active:scale-[0.98]"
+                      >
+                        {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
+                        Login as Demo
+                      </button>
+                   </>
+                )}
               </div>
             </form>
             
