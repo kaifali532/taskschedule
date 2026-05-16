@@ -3,6 +3,7 @@ import { supabase, Task, Project, UserProfile, TaskStatus } from '../lib/supabas
 import { useAuth } from '../context/AuthContext';
 import { Plus, Trash2, Edit, X } from 'lucide-react';
 import { format, parseISO, isPast } from 'date-fns';
+import { withDemoData } from '../lib/mockData';
 
 export default function Tasks() {
   const { profile } = useAuth();
@@ -46,17 +47,21 @@ export default function Tasks() {
       if (projError) throw projError;
       if (usrError) throw usrError;
 
-      setProjects(projectsData || []);
-      setUsers(usersData || []);
+      const fullProjects = withDemoData(projectsData, 'projects', profile?.id);
+      const fullUsers = withDemoData(usersData, 'users');
+      const fullTasks = withDemoData(tasksData, 'tasks', profile?.id);
 
-      let enriched = (tasksData || []).map(t => ({
+      setProjects(fullProjects);
+      setUsers(fullUsers);
+
+      let enriched = fullTasks.map(t => ({
         ...t,
-        project: projectsData?.find(p => p.id === t.project_id) || { name: 'Unknown' },
-        assignee: usersData?.find(u => u.id === t.assigned_to) || null
+        project: fullProjects.find((p: any) => p.id === t.project_id) || { name: 'Unknown' },
+        assignee: fullUsers.find((u: any) => u.id === t.assigned_to) || null
       }));
 
       if (profile?.role === 'Member') {
-         enriched = enriched.filter(t => t.assigned_to === profile.id);
+         enriched = enriched.filter((t: any) => t.assigned_to === profile.id);
       }
 
       setTasks(enriched);
@@ -69,12 +74,12 @@ export default function Tasks() {
 
   const fetchProjects = async () => {
     const { data } = await supabase.from('projects').select('*');
-    if (data) setProjects(data);
+    if (data) setProjects(withDemoData(data, 'projects', profile?.id));
   };
 
   const fetchUsers = async () => {
     const { data } = await supabase.from('users').select('*');
-    if (data) setUsers(data);
+    if (data) setUsers(withDemoData(data, 'users'));
   };
 
   const handleOpenModal = (task?: Task) => {

@@ -32,7 +32,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (error) {
           console.warn('Supabase auth error:', error.message);
-          // If refresh token is invalid, clear storage
           if (error.message.includes('Refresh Token Not Found')) {
             await supabase.auth.signOut();
           }
@@ -54,24 +53,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     initializeAuth();
 
-    // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, newSession) => {
       if (!mounted) return;
+      if (event === 'INITIAL_SESSION') return; // We handle initial session above
       
-      setSession(session);
-      if (session?.user) {
-        await fetchProfile(session.user.id);
+      setSession(newSession);
+      
+      if (newSession?.user) {
+        await fetchProfile(newSession.user.id);
       } else {
         setProfile(null);
         setIsLoading(false);
       }
 
       if (event === 'SIGNED_OUT') {
-        // Clear any potentially corrupted state
         setProfile(null);
         setSession(null);
+        setIsLoading(false);
       }
     });
 

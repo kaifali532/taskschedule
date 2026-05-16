@@ -43,6 +43,8 @@ export interface Task {
   project_id: string;
   assigned_to: string;
   status: TaskStatus;
+  priority?: string;
   deadline: string;
   created_at: string;
+  updated_at?: string;
 }

@@ -3,6 +3,7 @@ import { supabase, Project, UserProfile } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { Plus, Trash2, Folder, X } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
+import { withDemoData } from '../lib/mockData';
 
 export default function Projects() {
   const { profile } = useAuth();
@@ -36,26 +37,34 @@ export default function Projects() {
       
       const { data: projData, error: projErr } = results[0];
       if (projErr) throw projErr;
+      const fullProjects = withDemoData(projData, 'projects', profile?.id);
 
       const { data: usersData, error: usrErr } = results[1];
       if (usrErr) throw usrErr;
+      const fullUsers = withDemoData(usersData, 'users');
 
       let assignedProjectIds = new Set<string>();
       if (isMember) {
         const { data: myTasks, error: myTasksErr } = results[2];
         if (myTasksErr) throw myTasksErr;
-        if (myTasks) {
-          myTasks.forEach((t: any) => assignedProjectIds.add(t.project_id));
+        const fullMyTasks = withDemoData(myTasks, 'tasks', profile?.id);
+        if (fullMyTasks) {
+          fullMyTasks.forEach((t: any) => {
+            if (t.assigned_to === profile.id || profile.id === undefined) {
+               assignedProjectIds.add(t.project_id);
+            }
+          });
         }
       }
 
-      let enriched = (projData || []).map(p => ({
+      let enriched = fullProjects.map(p => ({
         ...p,
-        admin: usersData?.find(u => u.id === p.admin_id) || { name: 'Unknown' }
+        admin: fullUsers.find((u: any) => u.id === p.admin_id) || { name: 'Unknown' }
       }));
 
       if (isMember) {
-        enriched = enriched.filter(p => assignedProjectIds.has(p.id));
+        // If they are a member, they only see projects they have tasks in, OR projects where they are explicitly the admin (demo injects admin)
+        enriched = enriched.filter(p => assignedProjectIds.has(p.id) || p.admin_id === profile.id);
       }
 
       setProjects(enriched);
