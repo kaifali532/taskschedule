@@ -5,15 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://dgqxoguogzakauhxlgci.supabase.co';
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_uzopnd1h39LMQtvsRcOdEQ_Sdqh6kk5';
 
-export const supabase = createClient(supabaseUrl, supabaseKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-    // Provide a distinct storage key if needed or rely on robust fetching
-    storage: window.localStorage,
-  }
-});
+export const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Shared database types
 export type UserRole = 'Admin' | 'Member';
